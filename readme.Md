@@ -103,7 +103,7 @@ The backend will be deployed using **Render**.
 Live API URL:
 
 ```
-ADD RENDER DEPLOYMENT LINK HERE
+https://quizaro-backend.onrender.com
 ```
 
 (Replace the above placeholder with the Render deployment link after deployment.)

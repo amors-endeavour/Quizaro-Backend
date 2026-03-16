@@ -7,7 +7,7 @@ require("dotenv").config()
 const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
 
-const isAuth = require("./middlewares/IsAuth");
+const isAuth = require("./middlewares/isAuth");
 
 // Controllers
 const {

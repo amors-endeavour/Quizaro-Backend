@@ -53,6 +53,7 @@ app.get("/", (req, res) => {
   res.send("Study Test Series API Running")
 })
 
+
 /* ===========================
    USER ROUTES
 =========================== */
@@ -60,6 +61,16 @@ app.get("/", (req, res) => {
 app.post("/user/register", register)
 app.post("/user/login", login)
 app.get("/user/profile", isAuth, getProfile)
+
+/* ===========================
+   DASHBOARD CONTROL ROUTE
+=========================== */
+app.get("/admin/dashboard", isAuth, isAdmin, (req, res) => {
+  res.json({
+    message: "Welcome Admin",
+    user: req.user
+  });
+});
 
 /* ===========================
    TEST SERIES ROUTES

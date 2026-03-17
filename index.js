@@ -8,7 +8,7 @@ const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
 
 const isAuth = require("./middlewares/isAuth");
-
+const isAdmin = require("./middlewares/isAdmin");
 // Controllers
 const {
   register,
@@ -66,7 +66,7 @@ app.get("/user/profile", isAuth, getProfile)
 =========================== */
 
 // Admin creates test
-app.post("/test/create", isAuth, createTest)
+app.post("/test/create", isAuth,isAdmin, createTest)
 
 // Fetch all tests
 app.get("/tests", getAllTests)
@@ -83,7 +83,7 @@ app.post("/test/purchase/:testId", isAuth, purchaseTest)
 =========================== */
 
 // Admin adds unlimited questions
-app.post("/question/add/:testId", isAuth, addQuestion)
+app.post("/question/add/:testId", isAuth,isAdmin, addQuestion)
 
 // Get questions for test attempt
 app.get("/questions/:testId", isAuth, getTestQuestions)

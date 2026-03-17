@@ -54,25 +54,26 @@ const jwt = require("jsonwebtoken");
 
 // Generate JWT token
 // Token contains user id and expires in 7 days
-const generateToken = (id) => {
+// Generate JWT token with user id + role
+const generateToken = (id, role) => {
   return jwt.sign(
-    { id },
-    process.env.SECRET_KEY, // must match .env
+    { id, role },   // ⭐ include role
+    process.env.SECRET_KEY,
     { expiresIn: "7d" }
   );
 };
 
 
 // ======================
-// Register User
+// Register User (Admin + Student)
 // ======================
 exports.register = async (req, res) => {
 
   try {
 
-    const { name, email, password } = req.body;
+    // Get role also from request
+    const { name, email, password, role } = req.body;
 
-    // Check if email already exists
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -81,82 +82,87 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Create new user
-    const user = await User.create({
-      name,
-      email,
-      password
-    });
+    // Restrict admin creation (basic validation)
+      const assignedRole = role === "admin" ? "admin" : "student";
 
-    // Generate JWT token
-    const token = generateToken(user._id);
+      const user = await User.create({
+        name,
+        email,
+        password,
+        role: assignedRole
+      });
 
-    // Send token as cookie (used by isAuth middleware)
+    // Generate token with role
+    const token = generateToken(user._id, user.role);
+
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: false // set true in production (https)
+      secure: false
     });
 
-    // Send response
     res.status(201).json({
       user,
-      token
+      token,
+      role: user.role
     });
 
   } catch (err) {
-
-    res.status(500).json({
-      error: err.message
-    });
-
+    res.status(500).json({ error: err.message });
   }
 
 };
 
-
 // ======================
-// Login User
+// Login User / Admin
 // ======================
 exports.login = async (req, res) => {
 
   try {
 
+    // Get email & password from request body
     const { email, password } = req.body;
 
-    // Find user and include password
+    // Find user by email and explicitly include password
+    // (password is hidden in schema using select: false)
     const user = await User.findOne({ email }).select("+password");
 
+    // If user does not exist → invalid login
     if (!user) {
       return res.status(400).json({
         message: "Invalid credentials"
       });
     }
 
-    // Compare entered password with hashed password
+    // Compare entered password with hashed password in DB
     const isMatch = await user.comparePassword(password);
 
+    // If password does not match → invalid login
     if (!isMatch) {
       return res.status(400).json({
         message: "Invalid credentials"
       });
     }
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate JWT token using user ID and Role
+   const token = generateToken(user._id, user.role);
 
-    // Set cookie for authentication
+    // Store token in HTTP-only cookie (used for authentication)
     res.cookie("authToken", token, {
-      httpOnly: true,
-      secure: false
+      httpOnly: true,   // prevents access from frontend JS (security)
+      secure: false     // set to true in production (HTTPS)
     });
 
+    // Send response back to client
+    // Include role to differentiate admin vs student on frontend
     res.json({
-      user,
-      token
+      user,             // user details
+      token,            // JWT token
+      role: user.role   // ⭐ used for redirect (admin / student)
     });
 
   } catch (err) {
 
+    // Handle unexpected server errors
     res.status(500).json({
       error: err.message
     });
@@ -164,7 +170,6 @@ exports.login = async (req, res) => {
   }
 
 };
-
 
 // ======================
 // Get Logged-in User Profile

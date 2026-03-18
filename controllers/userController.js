@@ -59,21 +59,34 @@ const generateToken = (id, role) => {
   return jwt.sign(
     { id, role },   // ⭐ include role
     process.env.SECRET_KEY,
-    { expiresIn: "7d" }
+    { expiresIn: "30d" }
   );
 };
 
 
 // ======================
-// Register User (Admin + Student)
+// Register User (Only Students)
 // ======================
 exports.register = async (req, res) => {
 
   try {
 
-    // Get role also from request
+    // Get user details from request body
     const { name, email, password, role } = req.body;
 
+    // ======================
+    // ❌ Prevent Admin Registration
+    // Admin accounts are already created manually in DB
+    // ======================
+    if (role === "admin") {
+      return res.status(403).json({
+        message: "Admin cannot register. Please login."
+      });
+    }
+
+    // ======================
+    // Check if user already exists
+    // ======================
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -82,24 +95,35 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Restrict admin creation (basic validation)
-      const assignedRole = role === "admin" ? "admin" : "student";
-
-      const user = await User.create({
-        name,
-        email,
-        password,
-        role: assignedRole
-      });
-
-    // Generate token with role
-    const token = generateToken(user._id, user.role);
-
-    res.cookie("authToken", token, {
-      httpOnly: true,
-      secure: false
+    // ======================
+    // Create new user (force role = student)
+    // Even if role is sent from frontend, we override it
+    // ======================
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: "student"
     });
 
+    // ======================
+    // Generate JWT token (includes id + role)
+    // ======================
+    const token = generateToken(user._id, user.role);
+
+    // ======================
+    // Store token in HTTP-only cookie
+    // Session valid for 30 days
+    // ======================
+    res.cookie("authToken", token, {
+      httpOnly: true, // prevents JS access (security)
+      secure: false,  // set true in production (HTTPS)
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+
+    // ======================
+    // Send response to frontend
+    // ======================
     res.status(201).json({
       user,
       token,
@@ -107,10 +131,17 @@ exports.register = async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    // Handle unexpected errors
+    res.status(500).json({
+      error: err.message
+    });
+
   }
 
 };
+
+
 
 // ======================
 // Login User / Admin
@@ -119,45 +150,65 @@ exports.login = async (req, res) => {
 
   try {
 
+    // ======================
     // Get email & password from request body
+    // ======================
     const { email, password } = req.body;
 
-    // Find user by email and explicitly include password
-    // (password is hidden in schema using select: false)
+    // ======================
+    // Find user by email
+    // Include password explicitly (hidden in schema)
+    // ======================
     const user = await User.findOne({ email }).select("+password");
 
-    // If user does not exist → invalid login
+    // If user not found → invalid credentials
     if (!user) {
       return res.status(400).json({
         message: "Invalid credentials"
       });
     }
 
-    // Compare entered password with hashed password in DB
+    // ======================
+    // Compare entered password with hashed password
+    // ======================
     const isMatch = await user.comparePassword(password);
 
-    // If password does not match → invalid login
+    // If password incorrect → invalid credentials
     if (!isMatch) {
       return res.status(400).json({
         message: "Invalid credentials"
       });
     }
 
-    // Generate JWT token using user ID and Role
-   const token = generateToken(user._id, user.role);
+    // ======================
+    // Generate JWT token (includes id + role)
+    // ======================
+    const token = generateToken(user._id, user.role);
 
-    // Store token in HTTP-only cookie (used for authentication)
+    // ======================
+    // Store token in HTTP-only cookie
+    // Valid for 30 days (persistent session)
+    // ======================
     res.cookie("authToken", token, {
-      httpOnly: true,   // prevents access from frontend JS (security)
-      secure: false     // set to true in production (HTTPS)
+      httpOnly: true, // prevents JS access (security)
+      secure: false,  // set true in production (HTTPS)
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     });
 
-    // Send response back to client
-    // Include role to differentiate admin vs student on frontend
+    // ======================
+    // Remove password before sending response
+    // (IMPORTANT SECURITY FIX)
+    // ======================
+    user.password = undefined;
+
+    // ======================
+    // Send response
+    // Role is used by frontend for redirection
+    // ======================
     res.json({
-      user,             // user details
-      token,            // JWT token
-      role: user.role   // ⭐ used for redirect (admin / student)
+      user,
+      token,
+      role: user.role
     });
 
   } catch (err) {
@@ -170,6 +221,8 @@ exports.login = async (req, res) => {
   }
 
 };
+
+
 
 // ======================
 // Get Logged-in User Profile

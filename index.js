@@ -116,4 +116,18 @@ app.get("/leaderboard/:testId", getLeaderboard)
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`)
-})
+});
+
+// ======================
+// Logout User
+// ======================
+app.post("/user/logout", (req, res) => {
+
+  // Clear cookie
+  res.clearCookie("authToken");
+
+  res.json({
+    message: "Logged out successfully"
+  });
+
+});

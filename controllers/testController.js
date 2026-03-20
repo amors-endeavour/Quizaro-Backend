@@ -47,25 +47,48 @@ exports.getSingleTest = async (req, res) => {
 
 
 /* ===========================================
-   PURCHASE TEST
+   PURCHASE TEST (Student Only)
 =========================================== */
 
 exports.purchaseTest = async (req, res) => {
+  try {
 
-  const user = await User.findById(req.user.id);
+    // Find logged-in user
+    const user = await User.findById(req.user.id);
 
-  // Prevent duplicate purchase
-  if (user.purchasedTests.includes(req.params.testId)) {
-    return res.status(400).json({
-      message: "Already purchased"
+    const testId = req.params.testId;
+
+    // Check if already purchased
+    const alreadyPurchased = user.purchasedTests.find(
+      (test) => test.testId.toString() === testId
+    );
+
+    if (alreadyPurchased) {
+      return res.status(400).json({
+        message: "Test already purchased"
+      });
+    }
+
+    // Create expiry date (3 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate()+3);
+
+    // Add test to purchasedTests array
+    user.purchasedTests.push({
+      testId,
+      purchasedAt: new Date(),
+      expiresAt,
+      isCompleted: false
     });
+
+    await user.save();
+
+    res.json({
+      message: "Test purchased successfully",
+      expiresAt
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  user.purchasedTests.push(req.params.testId);
-
-  await user.save();
-
-  res.json({
-    message: "Test purchased successfully"
-  });
 };

@@ -1,8 +1,8 @@
 const Question = require("../models/question");
+const User = require("../models/user");
 
 /* ===========================================
    ADD QUESTION (Admin Only)
-   - Adds question to a test
 =========================================== */
 
 exports.addQuestion = async (req, res) => {
@@ -29,13 +29,50 @@ exports.addQuestion = async (req, res) => {
 /* ===========================================
    GET QUESTIONS FOR TEST
    - Used when user starts test
+   - Includes purchase + expiry + completion checks
    - Hides correct answers
 =========================================== */
 
 exports.getTestQuestions = async (req, res) => {
+  try {
 
-  const questions = await Question.find({ testId: req.params.testId })
-    .select("-correctOption -explanation"); // 🔐 hide answers
+    const user = await User.findById(req.user.id);
+    const testId = req.params.testId;
 
-  res.json(questions);
+    // 🔍 Find purchased test
+    const purchasedTest = user.purchasedTests.find(
+      (test) => test.testId.toString() === testId
+    );
+
+    // ❌ If not purchased
+    if (!purchasedTest) {
+      return res.status(403).json({
+        message: "You have not purchased this test"
+      });
+    }
+
+    // ❌ If expired (after 3 days)
+    const now = new Date();
+    if (now > purchasedTest.expiresAt) {
+      return res.status(403).json({
+        message: "Test expired"
+      });
+    }
+
+    // ❌ If already completed
+    if (purchasedTest.isCompleted) {
+      return res.status(403).json({
+        message: "Test already completed"
+      });
+    }
+
+    // ✅ Fetch questions (hide answers for security)
+    const questions = await Question.find({ testId })
+      .select("-correctOption -explanation");
+
+    res.json(questions);
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

@@ -1,8 +1,8 @@
-// Generic validation middleware using Joi
-
 const validate = (schema) => (req, res, next) => {
 
-  const { error } = schema.validate(req.body);
+  const data = req.body || {};   // 🔥 FIX
+
+  const { error } = schema.validate(data);
 
   if (error) {
     return res.status(400).json({

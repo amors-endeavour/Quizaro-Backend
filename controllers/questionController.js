@@ -4,11 +4,16 @@ const User = require("../models/user");
 /* ===========================================
    ADD QUESTION (Admin Only)
 =========================================== */
-
 exports.addQuestion = async (req, res) => {
   try {
-
     const { questionText, options, correctOption, explanation } = req.body;
+
+    // ❌ Basic validation
+    if (!questionText || !options || options.length < 2) {
+      return res.status(400).json({
+        message: "Invalid question data"
+      });
+    }
 
     const question = await Question.create({
       testId: req.params.testId,
@@ -28,14 +33,11 @@ exports.addQuestion = async (req, res) => {
 
 /* ===========================================
    GET QUESTIONS FOR TEST
-   - Used when user starts test
-   - Includes purchase + expiry + completion checks
-   - Hides correct answers
+   - Validates purchase, completion, expiry
+   - Hides answers
 =========================================== */
-
 exports.getTestQuestions = async (req, res) => {
   try {
-
     const user = await User.findById(req.user.id);
     const testId = req.params.testId;
 
@@ -44,25 +46,25 @@ exports.getTestQuestions = async (req, res) => {
       (test) => test.testId.toString() === testId
     );
 
-    // ❌ If not purchased
+    // ❌ Not purchased
     if (!purchasedTest) {
       return res.status(403).json({
         message: "You have not purchased this test"
       });
     }
 
-    // ❌ If expired (after 3 days)
+    // ❌ Completed FIRST (highest priority)
+    if (purchasedTest.isCompleted) {
+      return res.status(403).json({
+        message: "Test already completed"
+      });
+    }
+
+    // ❌ Expired AFTER
     const now = new Date();
     if (now > purchasedTest.expiresAt) {
       return res.status(403).json({
         message: "Test expired"
-      });
-    }
-
-    // ❌ If already completed
-    if (purchasedTest.isCompleted) {
-      return res.status(403).json({
-        message: "Test already completed"
       });
     }
 

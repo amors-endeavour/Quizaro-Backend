@@ -5,6 +5,7 @@ const User = require("../models/user");
 /* ===========================================
    SUBMIT TEST
    - Validates answers strictly
+   - Checks purchase, expiry, completion
    - Calculates score
    - Marks test completed
 =========================================== */
@@ -13,6 +14,13 @@ exports.submitTest = async (req, res) => {
     const { answers, timeTaken } = req.body;
     const testId = req.params.testId;
     const userId = req.user.id;
+
+    // ❌ Validate answers presence
+    if (!answers || !Array.isArray(answers)) {
+      return res.status(400).json({
+        message: "Answers are required"
+      });
+    }
 
     // 🔍 Fetch user
     const user = await User.findById(userId);
@@ -28,14 +36,22 @@ exports.submitTest = async (req, res) => {
       });
     }
 
-    // ❌ Already attempted (via completion flag)
+    // ❌ Already completed
     if (purchasedTest.isCompleted) {
       return res.status(400).json({
         message: "You have already attempted this test"
       });
     }
 
-    // ❌ Prevent duplicate attempt entry (extra safety)
+    // ❌ Check expiry
+    const now = new Date();
+    if (now > purchasedTest.expiresAt) {
+      return res.status(403).json({
+        message: "Test expired"
+      });
+    }
+
+    // ❌ Prevent duplicate attempt (extra safety)
     const alreadyAttempted = await Attempt.findOne({ userId, testId });
     if (alreadyAttempted) {
       return res.status(400).json({
@@ -43,7 +59,7 @@ exports.submitTest = async (req, res) => {
       });
     }
 
-    // 🔍 Fetch questions
+    // 🔍 Fetch all questions
     const questions = await Question.find({ testId });
 
     if (!questions.length) {
@@ -78,6 +94,13 @@ exports.submitTest = async (req, res) => {
           message: "Invalid questionId or question not in this test"
         });
       }
+
+      // ❌ Validate selected option range (0–3)
+      if (ans.selectedOption < 0 || ans.selectedOption > 3) {
+        return res.status(400).json({
+          message: "Invalid selected option"
+        });
+      }
     }
 
     // ===============================
@@ -92,7 +115,6 @@ exports.submitTest = async (req, res) => {
         q => q._id.toString() === userAnswer.questionId
       );
 
-      // Check correctness
       const isCorrect =
         question.correctOption === userAnswer.selectedOption;
 
@@ -150,6 +172,61 @@ exports.submitTest = async (req, res) => {
       rank,
       answers: resultAnswers
     });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+/* ===========================================
+   GET RESULT
+   - Fetch single attempt result
+=========================================== */
+exports.getResult = async (req, res) => {
+  try {
+
+    const attempt = await Attempt.findById(req.params.attemptId)
+      .populate("userId", "name email")
+      .populate("testId", "title");
+
+    if (!attempt) {
+      return res.status(404).json({
+        message: "Result not found"
+      });
+    }
+
+    res.json(attempt);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+/* ===========================================
+   LEADERBOARD
+   - Rank users based on score
+   - Tie breaker → less time wins
+=========================================== */
+exports.getLeaderboard = async (req, res) => {
+  try {
+
+    const testId = req.params.testId;
+
+    const attempts = await Attempt.find({ testId })
+      .populate("userId", "name")
+      .sort({ score: -1, timeTaken: 1 });
+
+    const leaderboard = attempts.map((attempt, index) => ({
+      rank: index + 1,
+      user: attempt.userId.name,
+      score: attempt.score,
+      percentage: attempt.percentage,
+      timeTaken: attempt.timeTaken
+    }));
+
+    res.json(leaderboard);
 
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,17 +1,17 @@
 const Joi = require("joi");
 
-// Register
-const registerSchema = Joi.object({
-  name: Joi.string().min(2).required(),
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-  role: Joi.string().valid("student", "admin").optional()
+const submitTestSchema = Joi.object({
+  answers: Joi.array()
+    .items(
+      Joi.object({
+        questionId: Joi.string().required(),
+        selectedOption: Joi.number().min(0).max(3).required()
+      })
+    )
+    .min(1)
+    .required(),
+
+  timeTaken: Joi.number().optional()
 });
 
-// Login
-const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required()
-});
-
-module.exports = { registerSchema, loginSchema };
+module.exports = { submitTestSchema };

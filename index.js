@@ -6,24 +6,37 @@ require("dotenv").config();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 
-// Middlewares
+// ======================
+// MIDDLEWARES
+// ======================
 const isAuth = require("./middlewares/isAuth");
 const isAdmin = require("./middlewares/isAdmin");
 const validate = require("./middlewares/validate");
 
-// Joi Schemas
+// ======================
+// JOI SCHEMAS
+// ======================
 const { registerSchema, loginSchema } = require("./validations/userValidation");
 const { createTestSchema } = require("./validations/testValidation");
 const { addQuestionSchema } = require("./validations/questionValidation");
 const { submitTestSchema } = require("./validations/attemptValidation");
 
-// Controllers
+// ======================
+// CONTROLLERS
+// ======================
 const { register, login, getProfile } = require("./controllers/userController");
+
 const {
   createTest,
   getAllTests,
   getSingleTest,
-  purchaseTest
+  purchaseTest,
+
+  // 🔥 NEW USER PANEL CONTROLLERS
+  getAvailableTests,
+  getPurchasedTests,
+  getTestStatus
+
 } = require("./controllers/testController");
 
 const {
@@ -34,9 +47,16 @@ const {
 const {
   submitTest,
   getResult,
-  getLeaderboard
+  getLeaderboard,
+
+  // 🔥 NEW USER PANEL CONTROLLER
+  getUserAttempts
+
 } = require("./controllers/attemptController");
 
+// ======================
+// APP INIT
+// ======================
 const app = express();
 const port = process.env.PORT || 4000;
 
@@ -50,22 +70,33 @@ app.use(cors({
   credentials: true
 }));
 
+// ======================
+// ROOT
+// ======================
 app.get("/", (req, res) => {
   res.send("Study Test Series API Running");
 });
 
-/* ===========================
-   USER ROUTES
-=========================== */
 
+// ===========================
+// USER ROUTES
+// ===========================
 app.post("/user/register", validate(registerSchema), register);
 app.post("/user/login", validate(loginSchema), login);
 app.get("/user/profile", isAuth, getProfile);
 
-/* ===========================
-   ADMIN DASHBOARD
-=========================== */
+// ===========================
+// LOGOUT
+// ===========================
+app.post("/user/logout", (req, res) => {
+  res.clearCookie("authToken");
+  res.json({ message: "Logged out successfully" });
+});
 
+
+// ===========================
+// ADMIN DASHBOARD
+// ===========================
 app.get("/admin/dashboard", isAuth, isAdmin, (req, res) => {
   res.json({
     message: "Welcome Admin",
@@ -73,39 +104,74 @@ app.get("/admin/dashboard", isAuth, isAdmin, (req, res) => {
   });
 });
 
-/* ===========================
-   TEST ROUTES
-=========================== */
 
+// ===========================
+// TEST ROUTES
+// ===========================
+
+// Admin creates test
 app.post("/test/create", isAuth, isAdmin, validate(createTestSchema), createTest);
+
+// All tests (public)
 app.get("/tests", getAllTests);
+
+// Single test
 app.get("/test/:testId", getSingleTest);
+
+// Purchase test
 app.post("/test/purchase/:testId", isAuth, purchaseTest);
 
-/* ===========================
-   QUESTION ROUTES
-=========================== */
 
+// ===========================
+// 🔥 USER PANEL TEST ROUTES
+// ===========================
+
+// Get tests not yet purchased
+app.get("/user/tests/available", isAuth, getAvailableTests);
+
+// Get purchased tests
+app.get("/user/tests/purchased", isAuth, getPurchasedTests);
+
+// Get test status (purchased / expired / completed)
+app.get("/user/test/status/:testId", isAuth, getTestStatus);
+
+
+// ===========================
+// QUESTION ROUTES
+// ===========================
+
+// Admin adds questions
 app.post("/question/add/:testId", isAuth, isAdmin, validate(addQuestionSchema), addQuestion);
+
+// Get questions for test attempt
 app.get("/questions/:testId", isAuth, getTestQuestions);
 
-/* ===========================
-   ATTEMPT ROUTES
-=========================== */
 
+// ===========================
+// ATTEMPT ROUTES
+// ===========================
+
+// Submit test
 app.post("/test/submit/:testId", isAuth, validate(submitTestSchema), submitTest);
+
+// Get result
 app.get("/result/:attemptId", isAuth, getResult);
+
+// Leaderboard
 app.get("/leaderboard/:testId", getLeaderboard);
 
-/* ===========================
-   LOGOUT
-=========================== */
 
-app.post("/user/logout", (req, res) => {
-  res.clearCookie("authToken");
-  res.json({ message: "Logged out successfully" });
-});
+// ===========================
+// 🔥 USER PANEL ATTEMPT ROUTES
+// ===========================
 
+// Get user attempt history
+app.get("/user/attempts", isAuth, getUserAttempts);
+
+
+// ===========================
+// SERVER
+// ===========================
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

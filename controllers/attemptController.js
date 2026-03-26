@@ -232,3 +232,19 @@ exports.getLeaderboard = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+/* ===========================================
+   GET USER ATTEMPTS (HISTORY)
+=========================================== */
+exports.getUserAttempts = async (req, res) => {
+  try {
+
+    const attempts = await Attempt.find({ userId: req.user.id })
+      .populate("testId", "title");
+
+    res.json(attempts);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

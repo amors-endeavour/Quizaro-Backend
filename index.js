@@ -2,6 +2,9 @@ const express = require("express");
 const connectDb = require("./config/connectDB");
 const cors = require("cors");
 require("dotenv").config();
+const errorHandler = require("./middlewares/errorHandler");
+const AppError = require("./utils/AppError");
+
 
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -59,6 +62,11 @@ const {
 // ======================
 const app = express();
 const port = process.env.PORT || 4000;
+
+// Required for EJS
+app.set("view engine", "ejs");
+app.set("views","./views");
+
 
 connectDb();
 
@@ -118,6 +126,8 @@ app.get("/tests", getAllTests);
 // Single test
 app.get("/test/:testId", getSingleTest);
 
+console.log("isAuth:", typeof isAuth);
+console.log("purchaseTest:", typeof purchaseTest);
 // Purchase test
 app.post("/test/purchase/:testId", isAuth, purchaseTest);
 
@@ -168,6 +178,13 @@ app.get("/leaderboard/:testId", getLeaderboard);
 // Get user attempt history
 app.get("/user/attempts", isAuth, getUserAttempts);
 
+// Handle unknown routes
+app.use((req, res, next) => {
+  next(new AppError(`Route ${req.originalUrl} not found`, 404));
+});
+
+// Global error middleware
+app.use(errorHandler);
 
 // ===========================
 // SERVER

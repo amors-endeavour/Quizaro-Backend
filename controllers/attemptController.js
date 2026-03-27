@@ -1,116 +1,77 @@
 const Attempt = require("../models/attempt");
 const Question = require("../models/question");
 const User = require("../models/user");
+const AppError = require("../utils/AppError");
 
 /* ===========================================
    SUBMIT TEST
-   - Validates answers strictly
-   - Checks purchase, expiry, completion
-   - Calculates score
-   - Marks test completed
 =========================================== */
-exports.submitTest = async (req, res) => {
+exports.submitTest = async (req, res, next) => {
   try {
     const { answers, timeTaken } = req.body;
     const testId = req.params.testId;
     const userId = req.user.id;
 
-    // ❌ Validate answers presence
     if (!answers || !Array.isArray(answers)) {
-      return res.status(400).json({
-        message: "Answers are required"
-      });
+      return next(new AppError("Answers are required", 400));
     }
 
-    // 🔍 Fetch user
     const user = await User.findById(userId);
 
-    // ❌ Check purchase
     const purchasedTest = user.purchasedTests.find(
       (test) => test.testId.toString() === testId
     );
 
     if (!purchasedTest) {
-      return res.status(403).json({
-        message: "You have not purchased this test"
-      });
+      return next(new AppError("You have not purchased this test", 403));
     }
 
-    // ❌ Already completed
     if (purchasedTest.isCompleted) {
-      return res.status(400).json({
-        message: "You have already attempted this test"
-      });
+      return next(new AppError("You have already attempted this test", 400));
     }
 
-    // ❌ Check expiry
-    const now = new Date();
-    if (now > purchasedTest.expiresAt) {
-      return res.status(403).json({
-        message: "Test expired"
-      });
+    if (new Date() > purchasedTest.expiresAt) {
+      return next(new AppError("Test expired", 403));
     }
 
-    // ❌ Prevent duplicate attempt (extra safety)
     const alreadyAttempted = await Attempt.findOne({ userId, testId });
     if (alreadyAttempted) {
-      return res.status(400).json({
-        message: "You have already attempted this test"
-      });
+      return next(new AppError("You have already attempted this test", 400));
     }
 
-    // 🔍 Fetch all questions
     const questions = await Question.find({ testId });
 
     if (!questions.length) {
-      return res.status(400).json({
-        message: "No questions found for this test"
-      });
+      return next(new AppError("No questions found for this test", 400));
     }
 
-    // ❌ Validate answer count
     if (answers.length !== questions.length) {
-      return res.status(400).json({
-        message: "All questions must be answered"
-      });
+      return next(new AppError("All questions must be answered", 400));
     }
 
-    // ❌ Check duplicate questionIds
     const questionIds = answers.map(a => a.questionId);
     const uniqueIds = new Set(questionIds);
 
     if (uniqueIds.size !== questionIds.length) {
-      return res.status(400).json({
-        message: "Duplicate questionIds found"
-      });
+      return next(new AppError("Duplicate questionIds found", 400));
     }
 
-    // ❌ Ensure all questions belong to test
     const validQuestionIds = questions.map(q => q._id.toString());
 
     for (let ans of answers) {
       if (!validQuestionIds.includes(ans.questionId)) {
-        return res.status(400).json({
-          message: "Invalid questionId or question not in this test"
-        });
+        return next(new AppError("Invalid questionId or question not in this test", 400));
       }
 
-      // ❌ Validate selected option range (0–3)
       if (ans.selectedOption < 0 || ans.selectedOption > 3) {
-        return res.status(400).json({
-          message: "Invalid selected option"
-        });
+        return next(new AppError("Invalid selected option", 400));
       }
     }
 
-    // ===============================
-    // SCORE CALCULATION
-    // ===============================
     let score = 0;
     let resultAnswers = [];
 
     for (let userAnswer of answers) {
-
       const question = questions.find(
         q => q._id.toString() === userAnswer.questionId
       );
@@ -131,10 +92,8 @@ exports.submitTest = async (req, res) => {
       });
     }
 
-    // 📊 Calculate percentage
     const percentage = ((score / questions.length) * 100).toFixed(2);
 
-    // 💾 Save attempt
     const attempt = await Attempt.create({
       userId,
       testId,
@@ -144,15 +103,9 @@ exports.submitTest = async (req, res) => {
       timeTaken
     });
 
-    // ===============================
-    // MARK TEST AS COMPLETED
-    // ===============================
     purchasedTest.isCompleted = true;
     await user.save();
 
-    // ===============================
-    // RANK CALCULATION
-    // ===============================
     const betterScores = await Attempt.countDocuments({
       testId,
       $or: [
@@ -163,7 +116,6 @@ exports.submitTest = async (req, res) => {
 
     const rank = betterScores + 1;
 
-    // 📤 Response
     res.status(201).json({
       message: "Test submitted successfully",
       attemptId: attempt._id,
@@ -174,16 +126,15 @@ exports.submitTest = async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 
 /* ===========================================
    GET RESULT
-   - Fetch single attempt result
 =========================================== */
-exports.getResult = async (req, res) => {
+exports.getResult = async (req, res, next) => {
   try {
 
     const attempt = await Attempt.findById(req.params.attemptId)
@@ -191,25 +142,21 @@ exports.getResult = async (req, res) => {
       .populate("testId", "title");
 
     if (!attempt) {
-      return res.status(404).json({
-        message: "Result not found"
-      });
+      return next(new AppError("Result not found", 404));
     }
 
     res.json(attempt);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
 
 /* ===========================================
    LEADERBOARD
-   - Rank users based on score
-   - Tie breaker → less time wins
 =========================================== */
-exports.getLeaderboard = async (req, res) => {
+exports.getLeaderboard = async (req, res, next) => {
   try {
 
     const testId = req.params.testId;
@@ -229,14 +176,15 @@ exports.getLeaderboard = async (req, res) => {
     res.json(leaderboard);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
+
 /* ===========================================
-   GET USER ATTEMPTS (HISTORY)
+   GET USER ATTEMPTS
 =========================================== */
-exports.getUserAttempts = async (req, res) => {
+exports.getUserAttempts = async (req, res, next) => {
   try {
 
     const attempts = await Attempt.find({ userId: req.user.id })
@@ -245,6 +193,6 @@ exports.getUserAttempts = async (req, res) => {
     res.json(attempts);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };

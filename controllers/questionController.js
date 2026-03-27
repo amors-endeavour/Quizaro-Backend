@@ -1,18 +1,17 @@
 const Question = require("../models/question");
 const User = require("../models/user");
+const AppError = require("../utils/AppError");
 
 /* ===========================================
    ADD QUESTION (Admin Only)
 =========================================== */
-exports.addQuestion = async (req, res) => {
+exports.addQuestion = async (req, res, next) => {
   try {
     const { questionText, options, correctOption, explanation } = req.body;
 
     // ❌ Basic validation
     if (!questionText || !options || options.length < 2) {
-      return res.status(400).json({
-        message: "Invalid question data"
-      });
+      return next(new AppError("Invalid question data", 400));
     }
 
     const question = await Question.create({
@@ -26,7 +25,7 @@ exports.addQuestion = async (req, res) => {
     res.status(201).json(question);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
@@ -36,7 +35,7 @@ exports.addQuestion = async (req, res) => {
    - Validates purchase, completion, expiry
    - Hides answers
 =========================================== */
-exports.getTestQuestions = async (req, res) => {
+exports.getTestQuestions = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
     const testId = req.params.testId;
@@ -48,24 +47,18 @@ exports.getTestQuestions = async (req, res) => {
 
     // ❌ Not purchased
     if (!purchasedTest) {
-      return res.status(403).json({
-        message: "You have not purchased this test"
-      });
+      return next(new AppError("You have not purchased this test", 403));
     }
 
     // ❌ Completed FIRST (highest priority)
     if (purchasedTest.isCompleted) {
-      return res.status(403).json({
-        message: "Test already completed"
-      });
+      return next(new AppError("Test already completed", 403));
     }
 
     // ❌ Expired AFTER
     const now = new Date();
     if (now > purchasedTest.expiresAt) {
-      return res.status(403).json({
-        message: "Test expired"
-      });
+      return next(new AppError("Test expired", 403));
     }
 
     // ✅ Fetch questions (hide answers for security)
@@ -75,6 +68,6 @@ exports.getTestQuestions = async (req, res) => {
     res.json(questions);
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };

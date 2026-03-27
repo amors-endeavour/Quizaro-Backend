@@ -1,10 +1,11 @@
 const TestSeries = require("../models/testSeries");
 const User = require("../models/user");
+const AppError = require("../utils/AppError");
 
 /* ===========================================
    CREATE TEST (Admin Only)
 =========================================== */
-exports.createTest = async (req, res) => {
+exports.createTest = async (req, res, next) => {
   try {
     const test = await TestSeries.create({
       ...req.body,
@@ -14,7 +15,7 @@ exports.createTest = async (req, res) => {
     res.status(201).json(test);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
@@ -22,25 +23,39 @@ exports.createTest = async (req, res) => {
 /* ===========================================
    GET ALL TESTS
 =========================================== */
-exports.getAllTests = async (req, res) => {
-  const tests = await TestSeries.find().sort({ createdAt: -1 });
-  res.json(tests);
+exports.getAllTests = async (req, res, next) => {
+  try {
+    const tests = await TestSeries.find().sort({ createdAt: -1 });
+    res.json(tests);
+  } catch (err) {
+    next(err);
+  }
 };
 
 
 /* ===========================================
    GET SINGLE TEST
 =========================================== */
-exports.getSingleTest = async (req, res) => {
-  const test = await TestSeries.findById(req.params.testId);
-  res.json(test);
+exports.getSingleTest = async (req, res, next) => {
+  try {
+    const test = await TestSeries.findById(req.params.testId);
+
+    if (!test) {
+      return next(new AppError("Test not found", 404));
+    }
+
+    res.json(test);
+
+  } catch (err) {
+    next(err);
+  }
 };
 
 
 /* ===========================================
    PURCHASE TEST
 =========================================== */
-exports.purchaseTest = async (req, res) => {
+exports.purchaseTest = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id);
@@ -51,9 +66,7 @@ exports.purchaseTest = async (req, res) => {
     );
 
     if (alreadyPurchased) {
-      return res.status(400).json({
-        message: "Test already purchased"
-      });
+      return next(new AppError("Test already purchased", 400));
     }
 
     const expiresAt = new Date();
@@ -74,7 +87,7 @@ exports.purchaseTest = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
@@ -82,7 +95,7 @@ exports.purchaseTest = async (req, res) => {
 /* ===========================================
    GET AVAILABLE TESTS (NOT PURCHASED)
 =========================================== */
-exports.getAvailableTests = async (req, res) => {
+exports.getAvailableTests = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id);
@@ -98,7 +111,7 @@ exports.getAvailableTests = async (req, res) => {
     res.json(tests);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
@@ -106,7 +119,7 @@ exports.getAvailableTests = async (req, res) => {
 /* ===========================================
    GET PURCHASED TESTS
 =========================================== */
-exports.getPurchasedTests = async (req, res) => {
+exports.getPurchasedTests = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id)
@@ -115,7 +128,7 @@ exports.getPurchasedTests = async (req, res) => {
     res.json(user.purchasedTests);
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };
 
@@ -126,7 +139,7 @@ exports.getPurchasedTests = async (req, res) => {
    - expired?
    - completed?
 =========================================== */
-exports.getTestStatus = async (req, res) => {
+exports.getTestStatus = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id);
@@ -150,6 +163,6 @@ exports.getTestStatus = async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 };

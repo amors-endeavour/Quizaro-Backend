@@ -57,6 +57,15 @@ const {
 
 } = require("./controllers/attemptController");
 
+const {
+  getAllUsers,
+  getAllTestsAdmin,
+  getAllAttempts,
+  deleteTest,
+  deleteQuestion,
+  updateTest,
+  getAdminStats
+} = require("./controllers/adminController");
 // ======================
 // APP INIT
 // ======================
@@ -178,6 +187,24 @@ app.get("/leaderboard/:testId", getLeaderboard);
 // Get user attempt history
 app.get("/user/attempts", isAuth, getUserAttempts);
 
+/* ===========================
+   ADMIN DASHBOARD ROUTES
+=========================== */
+
+app.get("/admin/users", isAuth, isAdmin, getAllUsers);
+
+app.get("/admin/tests", isAuth, isAdmin, getAllTestsAdmin);
+
+app.get("/admin/attempts", isAuth, isAdmin, getAllAttempts);
+
+app.delete("/admin/test/:testId", isAuth, isAdmin, deleteTest);
+
+app.delete("/admin/question/:questionId", isAuth, isAdmin, deleteQuestion);
+
+app.put("/admin/test/:testId", isAuth, isAdmin, updateTest);
+
+app.get("/admin/stats", isAuth, isAdmin, getAdminStats);
+
 // Handle unknown routes
 app.use((req, res, next) => {
   next(new AppError(`Route ${req.originalUrl} not found`, 404));
@@ -185,6 +212,7 @@ app.use((req, res, next) => {
 
 // Global error middleware
 app.use(errorHandler);
+
 
 // ===========================
 // SERVER

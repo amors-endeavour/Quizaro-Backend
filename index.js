@@ -1,5 +1,5 @@
 import express from "express";
-const connectDb = require("./config/connectDB");
+import connectDb from "./config/connectDB.js";
 const cors = require("cors");
 require("dotenv").config();
 const errorHandler = require("./middlewares/errorHandler");

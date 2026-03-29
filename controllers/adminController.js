@@ -67,33 +67,67 @@ exports.getAllAttempts = async (req, res, next) => {
 };
 
 
+const mongoose = require("mongoose");
+
 /* ===========================================
-   DELETE TEST
+   DELETE TEST (FULL CASCADE DELETE 🔥)
 =========================================== */
 exports.deleteTest = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
 
-    const test = await TestSeries.findByIdAndDelete(req.params.testId);
+    const testId = req.params.testId;
+
+    // 🔍 Check if test exists
+    const test = await TestSeries.findById(testId).session(session);
 
     if (!test) {
+      await session.abortTransaction();
+      session.endSession();
       return next(new AppError("Test not found", 404));
     }
 
-    // 🔥 Also delete related questions (optional but recommended)
-    await Question.deleteMany({ testId: req.params.testId });
+    // ===============================
+    // 🔥 CASCADE DELETE
+    // ===============================
 
-    // 🔥 Also delete attempts of this test (optional)
-    await Attempt.deleteMany({ testId: req.params.testId });
+    // ❌ Delete all questions
+    await Question.deleteMany({ testId }).session(session);
+
+    // ❌ Delete all attempts
+    await Attempt.deleteMany({ testId }).session(session);
+
+    // ❌ Remove test from users (VERY IMPORTANT 🔥)
+    await User.updateMany(
+      { "purchasedTests.testId": testId },
+      {
+        $pull: {
+          purchasedTests: { testId }
+        }
+      }
+    ).session(session);
+
+    // ❌ Delete test itself
+    await TestSeries.findByIdAndDelete(testId).session(session);
+
+    // ===============================
+    // COMMIT
+    // ===============================
+    await session.commitTransaction();
+    session.endSession();
 
     res.json({
-      message: "Test deleted successfully"
+      message: "Test and all related data deleted successfully"
     });
 
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     next(err);
   }
 };
-
 
 /* ===========================================
    DELETE QUESTION

@@ -70,7 +70,16 @@ const {
 // APP INIT
 // ======================
 const app = express();
-const port = process.env.PORT || 4000;
+// const port = process.env.PORT || 4000;
+
+import axios from "axios";
+
+const API = axios.create({
+  baseURL: "http://localhost:4000", // backend
+  withCredentials: true, // ✅ GLOBAL
+});
+
+export default API;
 
 // Required for EJS
 app.set("view engine", "ejs");

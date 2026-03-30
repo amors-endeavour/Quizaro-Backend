@@ -1,17 +1,29 @@
-const Joi = require("joi");
+// =====================================================
+// SUBMIT TEST VALIDATION SCHEMA (Joi)
+// Validates user answers and time taken for a test
+// =====================================================
 
+import Joi from "joi";
+
+// Schema for submitting a test
 const submitTestSchema = Joi.object({
+
+  // Array of answers submitted by user
   answers: Joi.array()
     .items(
       Joi.object({
-        questionId: Joi.string().required(),
-        selectedOption: Joi.number().min(0).max(3).required()
+        questionId: Joi.string().required(),        // ID of the question
+        selectedOption: Joi.number().min(0).max(3).required() // selected option index (0–3)
       })
     )
-    .min(1)
+    .min(1)      // At least one answer required
     .required(),
 
+  // Optional time taken to complete test
   timeTaken: Joi.number().optional()
 });
 
-module.exports = { submitTestSchema };
+// =====================================================
+// EXPORT SCHEMA
+// =====================================================
+export { submitTestSchema };

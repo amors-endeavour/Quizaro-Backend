@@ -1,13 +1,14 @@
-const User = require("../models/user");
-const TestSeries = require("../models/testSeries");
-const Attempt = require("../models/attempt");
-const Question = require("../models/question");
-const AppError = require("../utils/AppError");
+import User from "../models/user.js";
+import TestSeries from "../models/testSeries.js";
+import Attempt from "../models/attempt.js";
+import Question from "../models/question.js";
+import AppError from "../utils/AppError.js";
+import mongoose from "mongoose";
 
 /* ===========================================
    GET ALL USERS
 =========================================== */
-exports.getAllUsers = async (req, res, next) => {
+export const getAllUsers = async (req, res, next) => {
   try {
 
     const users = await User.find().select("-password");
@@ -27,7 +28,7 @@ exports.getAllUsers = async (req, res, next) => {
 /* ===========================================
    GET ALL TESTS (ADMIN VIEW)
 =========================================== */
-exports.getAllTestsAdmin = async (req, res, next) => {
+export const getAllTestsAdmin = async (req, res, next) => {
   try {
 
     const tests = await TestSeries.find()
@@ -48,7 +49,7 @@ exports.getAllTestsAdmin = async (req, res, next) => {
 /* ===========================================
    GET ALL ATTEMPTS
 =========================================== */
-exports.getAllAttempts = async (req, res, next) => {
+export const getAllAttempts = async (req, res, next) => {
   try {
 
     const attempts = await Attempt.find()
@@ -67,12 +68,10 @@ exports.getAllAttempts = async (req, res, next) => {
 };
 
 
-const mongoose = require("mongoose");
-
 /* ===========================================
    DELETE TEST (FULL CASCADE DELETE 🔥)
 =========================================== */
-exports.deleteTest = async (req, res, next) => {
+export const deleteTest = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -132,7 +131,7 @@ exports.deleteTest = async (req, res, next) => {
 /* ===========================================
    DELETE QUESTION
 =========================================== */
-exports.deleteQuestion = async (req, res, next) => {
+export const deleteQuestion = async (req, res, next) => {
   try {
 
     const question = await Question.findByIdAndDelete(req.params.questionId);
@@ -154,7 +153,7 @@ exports.deleteQuestion = async (req, res, next) => {
 /* ===========================================
    UPDATE TEST
 =========================================== */
-exports.updateTest = async (req, res, next) => {
+export const updateTest = async (req, res, next) => {
   try {
 
     const test = await TestSeries.findByIdAndUpdate(
@@ -178,7 +177,7 @@ exports.updateTest = async (req, res, next) => {
 /* ===========================================
    DASHBOARD STATS
 =========================================== */
-exports.getAdminStats = async (req, res, next) => {
+export const getAdminStats = async (req, res, next) => {
   try {
 
     const totalUsers = await User.countDocuments();

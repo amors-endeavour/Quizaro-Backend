@@ -1,22 +1,25 @@
-const multer  = require('multer')
+// Import multer for handling file uploads
+import multer from "multer";
 
-
-
+// Configure multer storage
 const upload = multer({ 
-    dest: 'uploads/', 
-    limits : 10 * 1024 *1024     // max file size = 10MB
+    dest: 'uploads/',  // Folder where uploaded files will be stored
+    limits : 10 * 1024 * 1024     // Max file size = 10MB
 })    
 
+// =====================================================
+// MIDDLEWARES FOR FILE UPLOAD
+// =====================================================
 
-// media files after uploads will be saved in upload folder  only if they are blob  // access req.file.path
-// base 64 url then it will not be saved in uploads folder 
-// u can access the streamed data in req.body
-
+// Upload single image for posts
+// Field name should be "postImage"
 const multMid = upload.single("postImage")
 
+// Upload single image for profile picture
+// Field name should be "profilepic"
 const uploadProfileMidWare = upload.single("profilepic")
 
-
-
-
-module.exports = {multMid , uploadProfileMidWare}
+// =====================================================
+// EXPORT MIDDLEWARES
+// =====================================================
+export { multMid, uploadProfileMidWare };

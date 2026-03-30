@@ -1,11 +1,11 @@
-const TestSeries = require("../models/testSeries");
-const User = require("../models/user");
-const AppError = require("../utils/AppError");
+import TestSeries from "../models/testSeries.js";
+import User from "../models/user.js";
+import AppError from "../utils/AppError.js";
 
 /* ===========================================
    CREATE TEST (Admin Only)
 =========================================== */
-exports.createTest = async (req, res, next) => {
+export const createTest = async (req, res, next) => {
   try {
     const test = await TestSeries.create({
       ...req.body,
@@ -23,7 +23,7 @@ exports.createTest = async (req, res, next) => {
 /* ===========================================
    GET ALL TESTS
 =========================================== */
-exports.getAllTests = async (req, res, next) => {
+export const getAllTests = async (req, res, next) => {
   try {
     const tests = await TestSeries.find().sort({ createdAt: -1 });
     res.json(tests);
@@ -36,7 +36,7 @@ exports.getAllTests = async (req, res, next) => {
 /* ===========================================
    GET SINGLE TEST
 =========================================== */
-exports.getSingleTest = async (req, res, next) => {
+export const getSingleTest = async (req, res, next) => {
   try {
     const test = await TestSeries.findById(req.params.testId);
 
@@ -55,7 +55,7 @@ exports.getSingleTest = async (req, res, next) => {
 /* ===========================================
    PURCHASE TEST
 =========================================== */
-exports.purchaseTest = async (req, res, next) => {
+export const purchaseTest = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id);
@@ -95,7 +95,7 @@ exports.purchaseTest = async (req, res, next) => {
 /* ===========================================
    GET AVAILABLE TESTS (NOT PURCHASED)
 =========================================== */
-exports.getAvailableTests = async (req, res, next) => {
+export const getAvailableTests = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id);
@@ -119,7 +119,7 @@ exports.getAvailableTests = async (req, res, next) => {
 /* ===========================================
    GET PURCHASED TESTS
 =========================================== */
-exports.getPurchasedTests = async (req, res, next) => {
+export const getPurchasedTests = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id)
@@ -139,7 +139,7 @@ exports.getPurchasedTests = async (req, res, next) => {
    - expired?
    - completed?
 =========================================== */
-exports.getTestStatus = async (req, res, next) => {
+export const getTestStatus = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id);

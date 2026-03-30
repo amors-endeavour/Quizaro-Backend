@@ -1,11 +1,14 @@
+// =====================================================
+// CLOUDINARY CONFIGURATION & UPLOAD FUNCTION
+// Handles uploading media files to Cloudinary
+// =====================================================
 
+import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
 
+dotenv.config();
 
-const cloudinary = require("cloudinary").v2;
-require('dotenv').config()
-
-
-
+// Configure Cloudinary with environment variables
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.API_KEY,
@@ -13,25 +16,34 @@ cloudinary.config({
 });
 
 
-
-const uploadToCloudinary = async (file , folderName) => {
+// =====================================================
+// UPLOAD FUNCTION
+// Uploads file to Cloudinary and returns secure URL
+// =====================================================
+const uploadToCloudinary = async (file, folderName) => {
 
     try {
-        if(!file) return
+        // If no file provided → exit
+        if (!file) return;
+
+        // Upload file to Cloudinary
         const uploadToCloud = await cloudinary.uploader.upload(file, {
             folder: folderName
-        })
-        const secureUrl = uploadToCloud.secure_url
-        return secureUrl
+        });
+
+        // Get secure URL of uploaded file
+        const secureUrl = uploadToCloud.secure_url;
+
+        return secureUrl;
 
     } catch (error) {
-        console.log("Cloudinary Error " , error)
+        console.log("Cloudinary Error", error);
     }
 
-}
+};
 
 
-
-
-
-module.exports = { uploadToCloudinary}
+// =====================================================
+// EXPORT FUNCTION
+// =====================================================
+export { uploadToCloudinary };

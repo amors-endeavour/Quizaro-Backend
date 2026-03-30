@@ -1,6 +1,6 @@
-import User from "../models/user.js";
-import jwt from "jsonwebtoken";
-import AppError from "../utils/AppError.js";
+const User = require("../models/user");
+const jwt = require("jsonwebtoken");
+const AppError = require("../utils/AppError");
 
 // Generate JWT token
 const generateToken = (id, role) => {
@@ -15,7 +15,7 @@ const generateToken = (id, role) => {
 // ======================
 // Register User (Only Students)
 // ======================
-export const register = async (req, res, next) => {
+exports.register = async (req, res, next) => {
   try {
 
     const { name, email, password, role } = req.body;
@@ -60,7 +60,7 @@ export const register = async (req, res, next) => {
 // ======================
 // Login User / Admin
 // ======================
-export const login = async (req, res, next) => {
+exports.login = async (req, res, next) => {
   try {
 
     const { email, password } = req.body;
@@ -102,7 +102,7 @@ export const login = async (req, res, next) => {
 // ======================
 // Get Logged-in User Profile
 // ======================
-export const getProfile = async (req, res, next) => {
+exports.getProfile = async (req, res, next) => {
   try {
 
     const user = await User.findById(req.user.id);

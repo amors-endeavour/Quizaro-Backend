@@ -1,11 +1,11 @@
-import Question from "../models/question.js";
-import User from "../models/user.js";
-import AppError from "../utils/AppError.js";
+const Question = require("../models/question");
+const User = require("../models/user");
+const AppError = require("../utils/AppError");
 
 /* ===========================================
    ADD QUESTION (Admin Only)
 =========================================== */
-export const addQuestion = async (req, res, next) => {
+exports.addQuestion = async (req, res, next) => {
   try {
     const { questionText, options, correctOption, explanation } = req.body;
 
@@ -35,7 +35,7 @@ export const addQuestion = async (req, res, next) => {
    - Validates purchase, completion, expiry
    - Hides answers
 =========================================== */
-export const getTestQuestions = async (req, res, next) => {
+exports.getTestQuestions = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
     const testId = req.params.testId;

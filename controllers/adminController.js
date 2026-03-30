@@ -1,14 +1,48 @@
-import User from "../models/user.js";
-import TestSeries from "../models/testSeries.js";
-import Attempt from "../models/attempt.js";
-import Question from "../models/question.js";
-import AppError from "../utils/AppError.js";
-import mongoose from "mongoose";
+const User = require("../models/user");
+const TestSeries = require("../models/testSeries");
+const Attempt = require("../models/attempt");
+const Question = require("../models/question");
+const AppError = require("../utils/AppError");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+exports.login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Check user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // 2. Check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // 3. Generate token
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      "SECRET_KEY",
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      token,
+      user
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
 
 /* ===========================================
    GET ALL USERS
 =========================================== */
-export const getAllUsers = async (req, res, next) => {
+exports.getAllUsers = async (req, res, next) => {
   try {
 
     const users = await User.find().select("-password");
@@ -28,7 +62,7 @@ export const getAllUsers = async (req, res, next) => {
 /* ===========================================
    GET ALL TESTS (ADMIN VIEW)
 =========================================== */
-export const getAllTestsAdmin = async (req, res, next) => {
+exports.getAllTestsAdmin = async (req, res, next) => {
   try {
 
     const tests = await TestSeries.find()
@@ -49,7 +83,7 @@ export const getAllTestsAdmin = async (req, res, next) => {
 /* ===========================================
    GET ALL ATTEMPTS
 =========================================== */
-export const getAllAttempts = async (req, res, next) => {
+exports.getAllAttempts = async (req, res, next) => {
   try {
 
     const attempts = await Attempt.find()
@@ -68,10 +102,12 @@ export const getAllAttempts = async (req, res, next) => {
 };
 
 
+const mongoose = require("mongoose");
+
 /* ===========================================
    DELETE TEST (FULL CASCADE DELETE 🔥)
 =========================================== */
-export const deleteTest = async (req, res, next) => {
+exports.deleteTest = async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -131,7 +167,7 @@ export const deleteTest = async (req, res, next) => {
 /* ===========================================
    DELETE QUESTION
 =========================================== */
-export const deleteQuestion = async (req, res, next) => {
+exports.deleteQuestion = async (req, res, next) => {
   try {
 
     const question = await Question.findByIdAndDelete(req.params.questionId);
@@ -153,7 +189,7 @@ export const deleteQuestion = async (req, res, next) => {
 /* ===========================================
    UPDATE TEST
 =========================================== */
-export const updateTest = async (req, res, next) => {
+exports.updateTest = async (req, res, next) => {
   try {
 
     const test = await TestSeries.findByIdAndUpdate(
@@ -177,7 +213,7 @@ export const updateTest = async (req, res, next) => {
 /* ===========================================
    DASHBOARD STATS
 =========================================== */
-export const getAdminStats = async (req, res, next) => {
+exports.getAdminStats = async (req, res, next) => {
   try {
 
     const totalUsers = await User.countDocuments();

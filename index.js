@@ -1,35 +1,34 @@
 import express from "express";
 import connectDb from "./config/connectDB.js";
-const cors = require("cors");
-require("dotenv").config();
-const errorHandler = require("./middlewares/errorHandler");
-const AppError = require("./utils/AppError");
+import cors from "cors";
+import dotenv from "dotenv";
+import errorHandler from "./middlewares/errorHandler.js";
+import AppError from "./utils/AppError.js";
 
-
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 
 // ======================
 // MIDDLEWARES
 // ======================
-const isAuth = require("./middlewares/isAuth");
-const isAdmin = require("./middlewares/isAdmin");
-const validate = require("./middlewares/validate");
+import isAuth from "./middlewares/isAuth.js";
+import isAdmin from "./middlewares/isAdmin.js";
+import validate from "./middlewares/validate.js";
 
 // ======================
 // JOI SCHEMAS
 // ======================
-const { registerSchema, loginSchema } = require("./validations/userValidation");
-const { createTestSchema } = require("./validations/testValidation");
-const { addQuestionSchema } = require("./validations/questionValidation");
-const { submitTestSchema } = require("./validations/attemptValidation");
+import { registerSchema, loginSchema } from "./validations/userValidation.js";
+import { createTestSchema } from "./validations/testValidation.js";
+import { addQuestionSchema } from "./validations/questionValidation.js";
+import { submitTestSchema } from "./validations/attemptValidation.js";
 
 // ======================
 // CONTROLLERS
 // ======================
-const { register, login, getProfile } = require("./controllers/userController");
+import { register, login, getProfile } from "./controllers/userController.js";
 
-const {
+import {
   createTest,
   getAllTests,
   getSingleTest,
@@ -40,14 +39,14 @@ const {
   getPurchasedTests,
   getTestStatus
 
-} = require("./controllers/testController");
+} from "./controllers/testController.js";
 
-const {
+import {
   addQuestion,
   getTestQuestions
-} = require("./controllers/questionController");
+} from "./controllers/questionController.js";
 
-const {
+import {
   submitTest,
   getResult,
   getLeaderboard,
@@ -55,9 +54,9 @@ const {
   // 🔥 NEW USER PANEL CONTROLLER
   getUserAttempts
 
-} = require("./controllers/attemptController");
+} from "./controllers/attemptController.js";
 
-const {
+import {
   getAllUsers,
   getAllTestsAdmin,
   getAllAttempts,
@@ -65,12 +64,13 @@ const {
   deleteQuestion,
   updateTest,
   getAdminStats
-} = require("./controllers/adminController");
+} from "./controllers/adminController.js";
+
 // ======================
 // APP INIT
 // ======================
 const app = express();
-// const port = process.env.PORT || 4000;
+const port = process.env.PORT || 4000;
 
 import axios from "axios";
 
@@ -85,6 +85,7 @@ export default API;
 app.set("view engine", "ejs");
 app.set("views","./views");
 
+dotenv.config();
 
 connectDb();
 
@@ -92,7 +93,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use(cors({
-  origin: process.env.PRODUCTION_URL,
+  origin: ["http://localhost:3000", process.env.PRODUCTION_URL],
   credentials: true
 }));
 

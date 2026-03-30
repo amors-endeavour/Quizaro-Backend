@@ -1,30 +1,27 @@
+// =====================================================
+// NODEMAILER CONFIGURATION
+// Used for sending emails via SMTP
+// =====================================================
 
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
-const nodeMailer = require("nodemailer")
+dotenv.config();   // Loads environment variables
 
-require('dotenv').config()    // not required ! 
-
-
-
-// console.log(process.env.SMTP_HOST)
-// console.log(process.env.SMTP_PORT)
-// console.log(process.env.SMTP_USER)
-// console.log(process.env.SMTP_PASS)
-
-
-
-const transporter = nodeMailer.createTransport({
-    host : process.env.SMTP_HOST,
-    port : 587,
-    secure : false , //true of only 465
-    auth : {
-        user: process.env.SMTP_USER ,
-        pass : process.env.SMTP_PASS     // app password you google password jo ap use kerna chahty mail send kernay kayliye 
+// =====================================================
+// CREATE TRANSPORTER
+// =====================================================
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,   // SMTP server host
+    port: 587,                     // Port (587 for TLS)
+    secure: false,                 // true only for port 465
+    auth: {
+        user: process.env.SMTP_USER,   // Email username
+        pass: process.env.SMTP_PASS    // App password (not normal email password)
     }
-})
+});
 
-
-
-module.exports = {transporter}
-
-
+// =====================================================
+// EXPORT TRANSPORTER
+// =====================================================
+export { transporter };

@@ -1,12 +1,12 @@
-const Attempt = require("../models/attempt");
-const Question = require("../models/question");
-const User = require("../models/user");
-const AppError = require("../utils/AppError");
+import Attempt from "../models/attempt.js";
+import Question from "../models/question.js";
+import User from "../models/user.js";
+import AppError from "../utils/AppError.js";
 
 /* ===========================================
    SUBMIT TEST
 =========================================== */
-exports.submitTest = async (req, res, next) => {
+export const submitTest = async (req, res, next) => {
   try {
     const { answers, timeTaken } = req.body;
     const testId = req.params.testId;
@@ -134,7 +134,7 @@ exports.submitTest = async (req, res, next) => {
 /* ===========================================
    GET RESULT
 =========================================== */
-exports.getResult = async (req, res, next) => {
+export const getResult = async (req, res, next) => {
   try {
 
     const attempt = await Attempt.findById(req.params.attemptId)
@@ -156,7 +156,7 @@ exports.getResult = async (req, res, next) => {
 /* ===========================================
    LEADERBOARD
 =========================================== */
-exports.getLeaderboard = async (req, res, next) => {
+export const getLeaderboard = async (req, res, next) => {
   try {
 
     const testId = req.params.testId;
@@ -184,7 +184,7 @@ exports.getLeaderboard = async (req, res, next) => {
 /* ===========================================
    GET USER ATTEMPTS
 =========================================== */
-exports.getUserAttempts = async (req, res, next) => {
+export const getUserAttempts = async (req, res, next) => {
   try {
 
     const attempts = await Attempt.find({ userId: req.user.id })

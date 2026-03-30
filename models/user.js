@@ -1,9 +1,9 @@
 // ======================
-// Students & Admins Schema
+// STUDENTS & ADMINS SCHEMA
 // ======================
 
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
@@ -86,12 +86,12 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true } // adds createdAt & updatedAt
 );
 
 
 // ======================
-// Hash password before saving
+// HASH PASSWORD BEFORE SAVING
 // ======================
 userSchema.pre("save", async function () {
 
@@ -107,12 +107,14 @@ userSchema.pre("save", async function () {
 
 
 // ======================
-// Compare password method (for login)
+// COMPARE PASSWORD METHOD (FOR LOGIN)
 // ======================
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
 
-// Export model
-module.exports = mongoose.model("User", userSchema);
+// ======================
+// EXPORT MODEL
+// ======================
+export default mongoose.model("User", userSchema);

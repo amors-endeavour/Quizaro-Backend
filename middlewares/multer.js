@@ -1,5 +1,5 @@
 // Import multer for handling file uploads
-import multer from "multer";
+const multer = require("multer");
 
 // Configure multer storage
 const upload = multer({ 
@@ -22,4 +22,4 @@ const uploadProfileMidWare = upload.single("profilepic")
 // =====================================================
 // EXPORT MIDDLEWARES
 // =====================================================
-export { multMid, uploadProfileMidWare };
+module.exports = { multMid, uploadProfileMidWare };

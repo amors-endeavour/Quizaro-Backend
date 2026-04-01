@@ -4,7 +4,7 @@
 // Each test can contain multiple questions
 // =====================================================
 
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // Define schema for test series
 const testSeriesSchema = new mongoose.Schema({
@@ -38,4 +38,4 @@ const testSeriesSchema = new mongoose.Schema({
 // =====================================================
 // EXPORT MODEL
 // =====================================================
-export default mongoose.model("TestSeries", testSeriesSchema);
+module.exports =  mongoose.model("TestSeries", testSeriesSchema);

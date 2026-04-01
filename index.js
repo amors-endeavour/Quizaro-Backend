@@ -1,34 +1,34 @@
-import express from "express";
-import connectDb from "./config/connectDB.js";
-import cors from "cors";
-import dotenv from "dotenv";
-import errorHandler from "./middlewares/errorHandler.js";
-import AppError from "./utils/AppError.js";
+const express = require("express");
+const connectDb = require("./config/connectDB");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const errorHandler = require("./middlewares/errorHandler");
+const AppError = require("./utils/AppError");
 
-import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 
 // ======================
 // MIDDLEWARES
 // ======================
-import isAuth from "./middlewares/isAuth.js";
-import isAdmin from "./middlewares/isAdmin.js";
-import validate from "./middlewares/validate.js";
+const isAuth = require("./middlewares/isAuth");
+const isAdmin = require("./middlewares/isAdmin");
+const validate = require("./middlewares/validate");
 
 // ======================
 // JOI SCHEMAS
 // ======================
-import { registerSchema, loginSchema } from "./validations/userValidation.js";
-import { createTestSchema } from "./validations/testValidation.js";
-import { addQuestionSchema } from "./validations/questionValidation.js";
-import { submitTestSchema } from "./validations/attemptValidation.js";
+const { registerSchema, loginSchema } = require("./validations/userValidation");
+const { createTestSchema } = require("./validations/testValidation");
+const { addQuestionSchema } = require("./validations/questionValidation");
+const { submitTestSchema } = require("./validations/attemptValidation");
 
 // ======================
 // CONTROLLERS
 // ======================
-import { register, login, getProfile } from "./controllers/userController.js";
+const { register, login, getProfile } = require("./controllers/userController");
 
-import {
+const {
   createTest,
   getAllTests,
   getSingleTest,
@@ -39,16 +39,16 @@ import {
   getPurchasedTests,
   getTestStatus
 
-} from "./controllers/testController.js";
+} = require("./controllers/testController");
 
-import {
+const {
   addQuestion,
   getTestQuestions,
   updateQuestion,
   getAllQuestionsAdmin
-} from "./controllers/questionController.js";
+} = require("./controllers/questionController");
 
-import {
+const {
   submitTest,
   getResult,
   getLeaderboard,
@@ -56,9 +56,9 @@ import {
   // 🔥 NEW USER PANEL CONTROLLER
   getUserAttempts
 
-} from "./controllers/attemptController.js";
+} = require("./controllers/attemptController");
 
-import {
+const {
   getAllUsers,
   getAllTestsAdmin,
   getAllAttempts,
@@ -66,7 +66,7 @@ import {
   deleteQuestion,
   updateTest,
   getAdminStats
-} from "./controllers/adminController.js";
+} = require("./controllers/adminController");
 
 // ======================
 // APP INIT
@@ -74,14 +74,14 @@ import {
 const app = express();
 const port = process.env.PORT || 4000;
 
-import axios from "axios";
+const axios = require("axios");
 
 const API = axios.create({
   baseURL: "http://localhost:4000", // backend
   withCredentials: true, // ✅ GLOBAL
 });
 
-export default API;
+module.exports = API;
 
 // Required for EJS
 app.set("view engine", "ejs");
@@ -163,6 +163,7 @@ app.get("/test/:testId", getSingleTest);
 
 console.log("isAuth:", typeof isAuth);
 console.log("purchaseTest:", typeof purchaseTest);
+
 // Purchase test
 app.post("/test/purchase/:testId", isAuth, purchaseTest);
 

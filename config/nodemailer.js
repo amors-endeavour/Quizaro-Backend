@@ -3,8 +3,8 @@
 // Used for sending emails via SMTP
 // =====================================================
 
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
+const nodemailer = require("nodemailer");
+const dotenv = require("dotenv");
 
 dotenv.config();   // Loads environment variables
 
@@ -24,4 +24,4 @@ const transporter = nodemailer.createTransport({
 // =====================================================
 // EXPORT TRANSPORTER
 // =====================================================
-export { transporter };
+module.exports = { transporter };

@@ -3,7 +3,7 @@
 // Validates input data for creating a test series
 // =====================================================
 
-import Joi from "joi";
+const Joi = require("joi");
 
 // Schema for creating a test
 const createTestSchema = Joi.object({
@@ -27,4 +27,4 @@ const createTestSchema = Joi.object({
 // =====================================================
 // EXPORT SCHEMA
 // =====================================================
-export { createTestSchema };
+module.exports = { createTestSchema };

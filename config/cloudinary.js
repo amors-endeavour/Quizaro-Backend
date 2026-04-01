@@ -3,8 +3,8 @@
 // Handles uploading media files to Cloudinary
 // =====================================================
 
-import { v2 as cloudinary } from "cloudinary";
-import dotenv from "dotenv";
+const cloudinary = require("cloudinary").v2;
+const dotenv = require("dotenv");
 
 dotenv.config();
 
@@ -46,4 +46,4 @@ const uploadToCloudinary = async (file, folderName) => {
 // =====================================================
 // EXPORT FUNCTION
 // =====================================================
-export { uploadToCloudinary };
+module.exports = { uploadToCloudinary };

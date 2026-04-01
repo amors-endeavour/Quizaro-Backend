@@ -4,7 +4,7 @@
 // score, correctness, and ranking-related data
 // =====================================================
 
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // Define schema for attempt
 const attemptSchema = new mongoose.Schema({
@@ -53,4 +53,4 @@ const attemptSchema = new mongoose.Schema({
 // =====================================================
 // EXPORT MODEL
 // =====================================================
-export default mongoose.model("Attempt", attemptSchema);
+module.exports = mongoose.model("Attempt", attemptSchema);

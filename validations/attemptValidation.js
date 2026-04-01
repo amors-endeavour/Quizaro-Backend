@@ -3,7 +3,7 @@
 // Validates user answers and time taken for a test
 // =====================================================
 
-import Joi from "joi";
+const Joi = require("joi");
 
 // Schema for submitting a test
 const submitTestSchema = Joi.object({
@@ -26,4 +26,4 @@ const submitTestSchema = Joi.object({
 // =====================================================
 // EXPORT SCHEMA
 // =====================================================
-export { submitTestSchema };
+module.exports = { submitTestSchema };

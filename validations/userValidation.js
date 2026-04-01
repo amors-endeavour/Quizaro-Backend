@@ -3,7 +3,7 @@
 // Handles validation for register and login
 // =====================================================
 
-import Joi from "joi";
+const Joi = require("joi");
 
 // ======================
 // REGISTER SCHEMA
@@ -38,4 +38,4 @@ const loginSchema = Joi.object({
 // =====================================================
 // EXPORT SCHEMAS
 // =====================================================
-export { registerSchema, loginSchema };
+module.exports = { registerSchema, loginSchema };

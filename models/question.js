@@ -4,7 +4,7 @@
 // and explanation for each question
 // =====================================================
 
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // Define schema for questions
 const questionSchema = new mongoose.Schema({
@@ -43,4 +43,4 @@ const questionSchema = new mongoose.Schema({
 // =====================================================
 // EXPORT MODEL
 // =====================================================
-export default mongoose.model("Question", questionSchema);
+module.exports =  mongoose.model("Question", questionSchema);

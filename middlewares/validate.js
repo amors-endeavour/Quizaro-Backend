@@ -26,4 +26,4 @@ const validate = (schema) => (req, res, next) => {
 // =====================================================
 // EXPORT MIDDLEWARE
 // =====================================================
-export default validate;
+module.exports = validate;

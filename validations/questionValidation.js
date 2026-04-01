@@ -3,7 +3,7 @@
 // Validates question creation input
 // =====================================================
 
-import Joi from "joi";
+const Joi = require("joi");
 
 // Schema for adding a question
 const addQuestionSchema = Joi.object({
@@ -31,4 +31,4 @@ const addQuestionSchema = Joi.object({
 // =====================================================
 // EXPORT SCHEMA
 // =====================================================
-export { addQuestionSchema };
+module.exports =  { addQuestionSchema };

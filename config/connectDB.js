@@ -3,7 +3,7 @@
 // Connects the application to MongoDB Atlas
 // =====================================================
 
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // Function to connect to database
 const connectDb = async () => {
@@ -29,4 +29,4 @@ const connectDb = async () => {
 // =====================================================
 // EXPORT FUNCTION
 // =====================================================
-export default connectDb;
+module.exports = connectDb;

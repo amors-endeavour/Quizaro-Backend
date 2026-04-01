@@ -39,9 +39,12 @@ exports.register = async (req, res, next) => {
 
     const token = generateToken(user._id, user.role);
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: false,
+      secure: isProduction,
+      sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
@@ -79,9 +82,12 @@ exports.login = async (req, res, next) => {
 
     const token = generateToken(user._id, user.role);
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: false,
+      secure: isProduction,
+      sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000
     });
 

@@ -31,6 +31,35 @@ exports.addQuestion = async (req, res, next) => {
 
 
 /* ===========================================
+   UPDATE QUESTION (Admin Only)
+=========================================== */
+exports.updateQuestion = async (req, res, next) => {
+  try {
+    const { questionText, options, correctOption, explanation } = req.body;
+
+    if (!questionText || !options || options.length < 2) {
+      return next(new AppError("Invalid question data", 400));
+    }
+
+    const question = await Question.findByIdAndUpdate(
+      req.params.questionId,
+      { questionText, options, correctOption, explanation },
+      { new: true }
+    );
+
+    if (!question) {
+      return next(new AppError("Question not found", 404));
+    }
+
+    res.json(question);
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+/* ===========================================
    GET QUESTIONS FOR TEST
    - Validates purchase, completion, expiry
    - Hides answers
@@ -67,6 +96,19 @@ exports.getTestQuestions = async (req, res, next) => {
 
     res.json(questions);
 
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+/* ===========================================
+   GET ALL QUESTIONS FOR TEST (Admin - with answers)
+=========================================== */
+exports.getAllQuestionsAdmin = async (req, res, next) => {
+  try {
+    const questions = await Question.find({ testId: req.params.testId });
+    res.json(questions);
   } catch (error) {
     next(error);
   }

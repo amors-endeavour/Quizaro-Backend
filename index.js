@@ -43,7 +43,9 @@ import {
 
 import {
   addQuestion,
-  getTestQuestions
+  getTestQuestions,
+  updateQuestion,
+  getAllQuestionsAdmin
 } from "./controllers/questionController.js";
 
 import {
@@ -172,7 +174,10 @@ app.get("/user/test/status/:testId", isAuth, getTestStatus);
 // Admin adds questions
 app.post("/question/add/:testId", isAuth, isAdmin, validate(addQuestionSchema), addQuestion);
 
-// Get questions for test attempt
+// Admin gets all questions (with answers)
+app.get("/admin/questions/:testId", isAuth, isAdmin, getAllQuestionsAdmin);
+
+// Get questions for test attempt (user - hides answers)
 app.get("/questions/:testId", isAuth, getTestQuestions);
 
 
@@ -210,6 +215,8 @@ app.get("/admin/attempts", isAuth, isAdmin, getAllAttempts);
 app.delete("/admin/test/:testId", isAuth, isAdmin, deleteTest);
 
 app.delete("/admin/question/:questionId", isAuth, isAdmin, deleteQuestion);
+
+app.put("/admin/question/:questionId", isAuth, isAdmin, updateQuestion);
 
 app.put("/admin/test/:testId", isAuth, isAdmin, updateTest);
 

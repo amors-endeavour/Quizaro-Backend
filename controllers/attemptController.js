@@ -76,19 +76,6 @@ exports.submitTest = async (req, res, next) => {
       }
     }
 
-      const question = questions.find(
-        q => q._id.toString() === ans.questionId
-      );
-      
-      if (!question) {
-        return next(new AppError("Question not found", 400));
-      }
-
-      if (ans.selectedOption < 0 || ans.selectedOption >= question.options.length) {
-        return next(new AppError("Invalid selected option", 400));
-      }
-    }
-
     let score = 0;
     let resultAnswers = [];
 

@@ -1,0 +1,251 @@
+const User = require("../models/user");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const AppError = require("../utils/AppError");
+const { transporter } = require("../config/nodemailer");
+
+// Generate JWT token
+const generateToken = (id, role) => {
+  return jwt.sign(
+    { id, role },
+    process.env.SECRET_KEY,
+    { expiresIn: "30d" }
+  );
+};
+
+
+// ======================
+// Register User (Only Students)
+// ======================
+exports.register = async (req, res, next) => {
+  try {
+
+    const { name, email, password, role } = req.body;
+
+    if (role === "admin") {
+      return next(new AppError("Admin cannot register. Please login.", 403));
+    }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return next(new AppError("User already exists", 400));
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: "student"
+    });
+
+    const token = generateToken(user._id, user.role);
+
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+
+    res.status(201).json({
+      user,
+      token,
+      role: user.role
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// ======================
+// Login User / Admin
+// ======================
+exports.login = async (req, res, next) => {
+  try {
+
+    const { email, password } = req.body;
+
+    let user = await User.findOne({ email }).select("+password");
+
+    if (!user) {
+      return next(new AppError("Invalid credentials", 401));
+    }
+
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+      return next(new AppError("Invalid credentials", 401));
+    }
+
+    const token = generateToken(user._id, user.role);
+
+    const isProduction = process.env.NODE_ENV === "production";
+
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    });
+
+    user.password = undefined;
+
+    res.json({
+      user,
+      token,
+      role: user.role
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// ======================
+// Get Logged-in User Profile
+// ======================
+exports.getProfile = async (req, res, next) => {
+  try {
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return next(new AppError("User not found", 404));
+    }
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      totalTestsAttempted: user.totalTestsAttempted,
+      totalScore: user.totalScore,
+      rankPoints: user.rankPoints,
+      purchasedTests: user.purchasedTests
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+// ======================
+// Forgot Password - Send Reset Link
+// ======================
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return next(new AppError("Email is required", 400));
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return next(new AppError("No user found with this email", 404));
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+    // Save reset token to database (expires in 15 minutes)
+    user.resetPasswordToken = resetTokenHash;
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    await user.save();
+
+    // Build reset link
+    const resetLink = `${process.env.FRONTEND_URL || "https://quizaro-frontend.vercel.app"}/reset-password?token=${resetToken}`;
+
+    // Send email in production, return token in development
+    if (process.env.NODE_ENV === "production" && process.env.SMTP_HOST) {
+      try {
+        await transporter.sendMail({
+          from: `"Quizaro" <${process.env.SMTP_USER}>`,
+          to: user.email,
+          subject: "Password Reset - Quizaro",
+          html: `
+            <h2>Password Reset Request</h2>
+            <p>Click the link below to reset your password:</p>
+            <a href="${resetLink}" style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:white;text-decoration:none;border-radius:6px;margin:16px 0;">Reset Password</a>
+            <p>Or copy this link: <a href="${resetLink}">${resetLink}</a></p>
+            <p>This link expires in 15 minutes.</p>
+            <p>If you did not request this, please ignore this email.</p>
+          `
+        });
+
+        res.json({
+          message: "Password reset link sent to your email"
+        });
+      } catch (emailErr) {
+        console.error("Email send failed:", emailErr);
+        res.json({
+          message: "Password reset link generated (email failed, using fallback)",
+          resetToken,
+          resetLink
+        });
+      }
+    } else {
+      res.json({
+        message: "Password reset link sent to your email",
+        resetToken,
+        resetLink
+      });
+    }
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// ======================
+// Reset Password
+// ======================
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return next(new AppError("Token and new password are required", 400));
+    }
+
+    if (newPassword.length < 6) {
+      return next(new AppError("Password must be at least 6 characters", 400));
+    }
+
+    // Hash the token from URL
+    const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      resetPasswordToken: resetTokenHash,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return next(new AppError("Invalid or expired reset token", 400));
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.json({
+      message: "Password reset successful. You can now login with your new password."
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};

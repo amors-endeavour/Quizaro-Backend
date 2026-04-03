@@ -86,7 +86,20 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ["http://localhost:3000", "https://quizaro-frontend.vercel.app"];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    // Allow localhost, vercel.app subdomains, and configured origins
+    const isAllowed = allowedOrigins.includes(origin)
+      || origin.match(/https?:\/\/.*\.vercel\.app$/)
+      || origin.match(/http:\/\/localhost/)
+      || origin.match(/http:\/\/127\.0\.0\.1/);
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]

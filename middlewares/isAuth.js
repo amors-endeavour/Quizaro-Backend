@@ -23,7 +23,7 @@ const isAuth = (req, res, next) => {
     }
 
     // Verify token using secret key
-    const verifyToken = jwt.verify(token, process.env.SECRET_KEY);
+    const verifyToken = jwt.verify(token, process.env.SECRET_KEY || process.env.JWT_SECRET || "your_secret_key");
 
     // Save decoded user info in request object
     req.user = verifyToken;

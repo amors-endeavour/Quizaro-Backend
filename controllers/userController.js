@@ -8,7 +8,7 @@ const { transporter } = require("../config/nodemailer");
 const generateToken = (id, role) => {
   return jwt.sign(
     { id, role },
-    process.env.SECRET_KEY,
+    process.env.SECRET_KEY || process.env.JWT_SECRET || "your_secret_key",
     { expiresIn: "30d" }
   );
 };

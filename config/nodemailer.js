@@ -13,7 +13,7 @@ dotenv.config();   // Loads environment variables
 // =====================================================
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,   // SMTP server host
-    port: 587,                     // Port (587 for TLS)
+    port: process.env.SMTP_PORT || 587,            // Port (587 for TLS)
     secure: false,                 // true only for port 465
     auth: {
         user: process.env.SMTP_USER,   // Email username

@@ -175,7 +175,7 @@ exports.getLeaderboard = async (req, res, next) => {
 
     const leaderboard = attempts.map((attempt, index) => ({
       rank: index + 1,
-      user: attempt.userId.name,
+      user: attempt.userId?.name || "Anonymous",
       score: attempt.score,
       percentage: attempt.percentage,
       timeTaken: attempt.timeTaken

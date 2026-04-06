@@ -28,7 +28,7 @@ const { submitTestSchema } = require("./validations/attemptValidation.js");
 // ======================
 // CONTROLLERS
 // ======================
-const { register, login, getProfile, forgotPassword, resetPassword } = require("./controllers/userController.js");
+const { register, login, getProfile, forgotPassword, resetPassword, logout } = require("./controllers/userController.js");
 
 const {
   createTest,
@@ -125,10 +125,7 @@ app.post("/user/reset-password", resetPassword);
 // ===========================
 // LOGOUT
 // ===========================
-app.post("/user/logout", (req, res) => {
-  res.clearCookie("authToken");
-  res.json({ message: "Logged out successfully" });
-});
+app.post("/user/logout", logout);
 
 
 // ===========================

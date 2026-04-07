@@ -27,6 +27,12 @@ const testSeriesSchema = new mongoose.Schema({
   // Total number of questions in the test
   totalQuestions: Number,
 
+  // Category for folder-based organization
+  category: {
+    type: String,
+    default: "General"
+  },
+
   // Reference to admin/user who created the test
   createdBy: { 
     type: mongoose.Schema.Types.ObjectId, 

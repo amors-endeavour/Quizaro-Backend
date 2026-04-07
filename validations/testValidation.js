@@ -21,7 +21,10 @@ const createTestSchema = Joi.object({
   price: Joi.number().required(),
 
   // Total number of questions (optional)
-  totalQuestions: Joi.number().optional()
+  totalQuestions: Joi.number().optional(),
+
+  // Category for folder-based organization
+  category: Joi.string().optional()
 });
 
 // =====================================================

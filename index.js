@@ -64,7 +64,12 @@ const {
   getAllSeries,
   getSeriesDetails,
   updateSeries,
-  deleteSeries
+  deleteSeries,
+  getAllUsers,
+  getAllTestsAdmin,
+  getAllAttempts,
+  deleteTest,
+  deleteQuestion
 } = require("./controllers/adminController.js");
 
 // ======================

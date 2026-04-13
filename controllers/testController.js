@@ -7,8 +7,12 @@ const AppError = require("../utils/AppError");
 =========================================== */
 exports.createTest = async (req, res, next) => {
   try {
+    const testData = { ...req.body };
+    // Mongoose ObjectId validation fails on empty string
+    if (testData.seriesId === "") delete testData.seriesId;
+
     const test = await TestSeries.create({
-      ...req.body,
+      ...testData,
       createdBy: req.user.id
     });
 

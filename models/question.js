@@ -38,6 +38,25 @@ const questionSchema = new mongoose.Schema({
   // Explanation shown after test submission
   explanation: String,
 
+  // Scoring points for correct answer
+  marks: {
+    type: Number,
+    default: 1
+  },
+
+  // Negative marking for wrong answer
+  negativeMarks: {
+    type: Number,
+    default: 0.25
+  },
+
+  // Difficulty level of the question
+  difficulty: {
+    type: String,
+    enum: ["Easy", "Medium", "Hard"],
+    default: "Medium"
+  }
+
 }, { timestamps: true }); // Adds createdAt & updatedAt automatically
 
 // =====================================================

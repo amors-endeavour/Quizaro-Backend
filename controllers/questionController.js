@@ -16,10 +16,7 @@ exports.addQuestion = async (req, res, next) => {
 
     const question = await Question.create({
       testId: req.params.testId,
-      questionText,
-      options,
-      correctOption,
-      explanation
+      ...req.body
     });
 
     res.status(201).json(question);
@@ -43,7 +40,7 @@ exports.updateQuestion = async (req, res, next) => {
 
     const question = await Question.findByIdAndUpdate(
       req.params.questionId,
-      { questionText, options, correctOption, explanation },
+      req.body,
       { new: true }
     );
 
@@ -93,6 +90,12 @@ exports.getTestQuestions = async (req, res, next) => {
     // ✅ Fetch questions (hide answers for security)
     const questions = await Question.find({ testId })
       .select("-correctOption -explanation");
+
+    // Logic: Randomized Fisher-Yates Shuffle
+    for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
 
     res.json(questions);
 

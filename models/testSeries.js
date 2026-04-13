@@ -27,11 +27,25 @@ const testSeriesSchema = new mongoose.Schema({
   // Total number of questions in the test
   totalQuestions: Number,
 
-  // Category for folder-based organization
-  category: {
-    type: String,
-    default: "General"
+  // Reference to the Series this paper belongs to
+  seriesId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "QuizSeries",
+    required: false // Optional for standalone tests, but used for series
   },
+
+  // Unique identifier within the series (e.g., 1 for "Paper 1")
+  paperNumber: Number,
+
+  // Difficulty level
+  difficulty: {
+    type: String,
+    enum: ["Easy", "Medium", "Hard"],
+    default: "Medium"
+  },
+
+  // Metadata tags
+  tags: [String],
 
   // Reference to admin/user who created the test
   createdBy: { 

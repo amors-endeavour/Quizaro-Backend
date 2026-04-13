@@ -25,7 +25,16 @@ const addQuestionSchema = Joi.object({
   correctOption: Joi.number().min(0).required(),
 
   // Optional explanation (shown after test submission)
-  explanation: Joi.string().optional()
+  explanation: Joi.string().optional(),
+
+  // Points/Marks for the question
+  marks: Joi.number().optional().default(1),
+
+  // Penalty/Negative marks for wrong answer
+  negativeMarks: Joi.number().optional().default(0.25),
+
+  // Difficulty level selection
+  difficulty: Joi.string().valid("Easy", "Medium", "Hard").optional().default("Medium")
 });
 
 // =====================================================

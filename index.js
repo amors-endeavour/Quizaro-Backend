@@ -55,13 +55,16 @@ const {
 } = require("./controllers/attemptController.js");
 
 const {
-  getAllUsers,
-  getAllTestsAdmin,
-  getAllAttempts,
-  deleteTest,
-  deleteQuestion,
   updateTest,
-  getAdminStats
+  getAdminStats,
+  getQuestionAnalytics,
+  exportPaperJSON,
+  importFullPaper,
+  createSeries,
+  getAllSeries,
+  getSeriesDetails,
+  updateSeries,
+  deleteSeries
 } = require("./controllers/adminController.js");
 
 // ======================
@@ -224,6 +227,22 @@ app.put("/admin/question/:questionId", isAuth, isAdmin, updateQuestion);
 app.put("/admin/test/:testId", isAuth, isAdmin, updateTest);
 
 app.get("/admin/stats", isAuth, isAdmin, getAdminStats);
+app.get("/admin/analytics/:testId", isAuth, isAdmin, getQuestionAnalytics);
+app.get("/admin/export/:testId", isAuth, isAdmin, exportPaperJSON);
+app.post("/admin/import", isAuth, isAdmin, importFullPaper);
+
+/* ===========================
+   ADMIN SERIES ROUTES
+=========================== */
+app.post("/admin/series/create", isAuth, isAdmin, createSeries);
+app.get("/admin/series", isAuth, isAdmin, getAllSeries);
+app.get("/admin/series/:seriesId", isAuth, isAdmin, getSeriesDetails);
+app.put("/admin/series/:seriesId", isAuth, isAdmin, updateSeries);
+app.delete("/admin/series/:seriesId", isAuth, isAdmin, deleteSeries);
+
+// Public Series Route
+app.get("/series", getAllSeries);
+app.get("/series/:seriesId", getSeriesDetails);
 
 /* ===========================
    FILE UPLOAD ROUTE

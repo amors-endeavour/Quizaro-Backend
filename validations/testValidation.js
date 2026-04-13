@@ -24,7 +24,12 @@ const createTestSchema = Joi.object({
   totalQuestions: Joi.number().optional(),
 
   // Category for folder-based organization
-  category: Joi.string().optional()
+  category: Joi.string().optional(),
+
+  // Hierarchical fields
+  seriesId: Joi.string().allow("").optional(),
+  paperNumber: Joi.number().optional(),
+  difficulty: Joi.string().valid("Easy", "Medium", "Hard").optional()
 });
 
 // =====================================================

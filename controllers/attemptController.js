@@ -162,13 +162,11 @@ exports.getResult = async (req, res, next) => {
 
 
 /* ===========================================
-   LEADERBOARD
+   LEADERBOARD (PER TEST)
 =========================================== */
 exports.getLeaderboard = async (req, res, next) => {
   try {
-
     const testId = req.params.testId;
-
     const attempts = await Attempt.find({ testId })
       .populate("userId", "name")
       .sort({ score: -1, timeTaken: 1 });
@@ -182,7 +180,77 @@ exports.getLeaderboard = async (req, res, next) => {
     }));
 
     res.json(leaderboard);
+  } catch (err) {
+    next(err);
+  }
+};
 
+
+/* ===========================================
+   GLOBAL LEADERBOARD
+=========================================== */
+exports.getGlobalLeaderboard = async (req, res, next) => {
+  try {
+    // Get top 10 unique users by their highest percentage
+    const leaderboard = await Attempt.aggregate([
+      { $sort: { percentage: -1, timeTaken: 1 } },
+      {
+        $group: {
+          _id: "$userId",
+          topPercentage: { $first: "$percentage" },
+          name: { $first: "$userId" } // We'll populate this manually or via subsequent lookup
+        }
+      },
+      { $sort: { topPercentage: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Populate user names
+    const populatedLeaderboard = await Promise.all(
+      leaderboard.map(async (entry, index) => {
+        const user = await User.findById(entry._id).select("name");
+        return {
+          rank: index + 1,
+          name: user?.name || "Anonymous",
+          score: entry.topPercentage
+        };
+      })
+    );
+
+    // Calculate current user's rank if authenticated
+    let userRank = null;
+    let userScore = null;
+    let percentile = 0;
+
+    if (req.user && req.user.id) {
+      // Find user's best attempt
+      const bestAttempt = await Attempt.findOne({ userId: req.user.id })
+        .sort({ percentage: -1, timeTaken: 1 });
+      
+      if (bestAttempt) {
+        userScore = bestAttempt.percentage;
+        // Count users with higher best score
+        const betterUsers = await Attempt.aggregate([
+          { $group: { _id: "$userId", best: { $max: "$percentage" } } },
+          { $match: { best: { $gt: userScore } } },
+          { $count: "count" }
+        ]);
+        userRank = (betterUsers[0]?.count || 0) + 1;
+
+        // Calculate percentile
+        const totalUsersCount = await User.countDocuments({ role: "student" });
+        if (totalUsersCount > 0) {
+          percentile = Math.round(((totalUsersCount - userRank + 1) / totalUsersCount) * 100);
+        }
+      }
+    }
+
+    res.json({
+      leaderboard: populatedLeaderboard,
+      userRank,
+      userScore,
+      percentile
+    });
   } catch (err) {
     next(err);
   }

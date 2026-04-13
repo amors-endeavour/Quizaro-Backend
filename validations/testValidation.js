@@ -12,7 +12,7 @@ const createTestSchema = Joi.object({
   title: Joi.string().required(),
 
   // Optional description of the test
-  description: Joi.string().optional(),
+  description: Joi.string().allow("").optional(),
 
   // Duration of test in minutes (optional)
   duration: Joi.number().optional(),
@@ -24,7 +24,7 @@ const createTestSchema = Joi.object({
   totalQuestions: Joi.number().optional(),
 
   // Category for folder-based organization
-  category: Joi.string().optional(),
+  category: Joi.string().allow("").optional(),
 
   // Hierarchical fields
   seriesId: Joi.string().allow("").optional(),

@@ -51,6 +51,7 @@ const {
   submitTest,
   getResult,
   getLeaderboard,
+  getGlobalLeaderboard,
   getUserAttempts
 } = require("./controllers/attemptController.js");
 
@@ -221,7 +222,8 @@ app.get("/admin/users", isAuth, isAdmin, getAllUsers);
 
 app.get("/admin/tests", isAuth, isAdmin, getAllTestsAdmin);
 
-app.get("/admin/attempts", isAuth, isAdmin, getAllAttempts);
+app.get("/admin/leaderboard/global", isAuth, getGlobalLeaderboard);
+app.get("/admin/attempts/recent", isAuth, isAdmin, getRecentAttempts);
 
 app.delete("/admin/test/:testId", isAuth, isAdmin, deleteTest);
 

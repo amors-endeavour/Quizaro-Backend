@@ -72,6 +72,18 @@ exports.purchaseTest = async (req, res, next) => {
       return next(new AppError("Test already purchased", 400));
     }
 
+    const test = await TestSeries.findById(testId);
+    if (!test) {
+       return next(new AppError("Test not found", 404));
+    }
+
+    // NEW PAYMENT SECURITY 🔥
+    if (test.price > 0) {
+       // In a real system, we'd check req.body.paymentId here.
+       // For now, let's assume we need a bypass or a simulation.
+       return next(new AppError("Premium Paper: Transaction required to unlock.", 402));
+    }
+
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 3);
 
@@ -245,6 +257,51 @@ exports.syncProgress = async (req, res, next) => {
     await user.save();
 
     res.json({ message: "Progress synced successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+/* ===========================================
+   GRANT ACCESS (Admin Only)
+=========================================== */
+exports.grantAccess = async (req, res, next) => {
+  try {
+    const { userEmail, testId, seriesId } = req.body;
+    
+    const user = await User.findOne({ email: userEmail });
+    if (!user) return next(new AppError("User not found", 404));
+
+    let papersToGrant = [];
+
+    if (seriesId) {
+      papersToGrant = await TestSeries.find({ seriesId });
+    } else if (testId) {
+      const paper = await TestSeries.findById(testId);
+      if (paper) papersToGrant = [paper];
+    }
+
+    if (papersToGrant.length === 0) {
+      return next(new AppError("No valid papers found to grant", 404));
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 90); // 90 days grant
+
+    papersToGrant.forEach(paper => {
+       const exists = user.purchasedTests.some(t => t.testId.toString() === paper._id.toString());
+       if (!exists) {
+          user.purchasedTests.push({
+             testId: paper._id,
+             purchasedAt: new Date(),
+             expiresAt,
+             isCompleted: false
+          });
+       }
+    });
+
+    await user.save();
+    res.json({ message: `Access granted to ${papersToGrant.length} papers for ${user.name}` });
+
   } catch (err) {
     next(err);
   }

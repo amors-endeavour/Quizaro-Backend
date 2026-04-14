@@ -39,7 +39,8 @@ const {
   getAvailableTests,
   getPurchasedTests,
   getTestStatus,
-  syncProgress
+  syncProgress,
+  grantAccess
 } = require("./controllers/testController.js");
 
 const {
@@ -183,6 +184,9 @@ app.get("/user/test/status/:testId", isAuth, getTestStatus);
 
 // Sync test progress 🔥
 app.post("/user/test/sync/:testId", isAuth, syncProgress);
+
+// Grant access (Admin Only) 🔥
+app.post("/admin/grant-access", isAuth, isAdmin, grantAccess);
 
 
 // ===========================

@@ -53,6 +53,17 @@ const testSeriesSchema = new mongoose.Schema({
     ref: "User" 
   },
 
+  // Institutional Controls 🔥
+  shuffleOptions: {
+    type: Boolean,
+    default: false
+  },
+  questionTimer: {
+    type: Number, // in seconds, 0 means no per-question timer
+    default: 0
+  },
+  category: String
+
 }, { timestamps: true }); // Adds createdAt & updatedAt automatically
 
 // =====================================================

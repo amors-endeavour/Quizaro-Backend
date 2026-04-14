@@ -89,15 +89,40 @@ exports.getTestQuestions = async (req, res, next) => {
 
     // ✅ Fetch questions (hide answers for security)
     const questions = await Question.find({ testId })
-      .select("-correctOption -explanation");
+      .select("-explanation"); // Keep correctOption if we need to map, or we can use another way
 
-    // Logic: Randomized Fisher-Yates Shuffle
+    const test = await require("../models/testSeries").findById(testId);
+
+    // Logic: Randomized Fisher-Yates Shuffle for Questions
     for (let i = questions.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [questions[i], questions[j]] = [questions[j], questions[i]];
     }
 
-    res.json(questions);
+    // Logic: Option Shuffling 🔥
+    let responseQuestions = questions.map(q => {
+        const questionObj = q.toObject();
+        
+        // Map options to include original index for submission safety
+        questionObj.options = questionObj.options.map((opt, idx) => ({
+            ...opt,
+            originalIndex: idx
+        }));
+
+        if (test && test.shuffleOptions) {
+            // Shuffle choices
+            for (let i = questionObj.options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [questionObj.options[i], questionObj.options[j]] = [questionObj.options[j], questionObj.options[i]];
+            }
+        }
+        
+        // Hide correctOption from response for security
+        delete questionObj.correctOption;
+        return questionObj;
+    });
+
+    res.json(responseQuestions);
 
   } catch (error) {
     next(error);

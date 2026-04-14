@@ -163,9 +163,41 @@ exports.getTestStatus = async (req, res, next) => {
       purchased: true,
       isCompleted: purchased.isCompleted,
       isExpired: now > purchased.expiresAt,
-      expiresAt: purchased.expiresAt
+      expiresAt: purchased.expiresAt,
+      // Persistence fields 🔥
+      startedAt: purchased.startedAt,
+      timeRemaining: purchased.timeRemaining,
+      draftAnswers: purchased.draftAnswers
     });
 
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ===========================================
+   SYNC PROGRESS
+=========================================== */
+exports.syncProgress = async (req, res, next) => {
+  try {
+    const { testId, startedAt, timeRemaining, draftAnswers } = req.body;
+    const user = await User.findById(req.user.id);
+
+    const testIndex = user.purchasedTests.findIndex(
+      (t) => t.testId.toString() === testId
+    );
+
+    if (testIndex === -1) {
+      return next(new AppError("Test not found in user purchases", 404));
+    }
+
+    user.purchasedTests[testIndex].startedAt = startedAt;
+    user.purchasedTests[testIndex].timeRemaining = timeRemaining;
+    user.purchasedTests[testIndex].draftAnswers = draftAnswers;
+
+    await user.save();
+
+    res.json({ message: "Progress synced successfully" });
   } catch (err) {
     next(err);
   }

@@ -264,7 +264,7 @@ exports.getUserAttempts = async (req, res, next) => {
   try {
 
     const attempts = await Attempt.find({ userId: req.user.id })
-      .populate("testId", "title");
+      .populate("testId", "title category");
 
     res.json(attempts);
 

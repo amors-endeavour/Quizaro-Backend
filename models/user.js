@@ -75,6 +75,22 @@ const userSchema = new mongoose.Schema(
           type: Boolean,
           default: false,
         },
+
+        // Tracking fields for Pause/Resume 🔥
+        startedAt: {
+          type: Date,
+          default: null
+        },
+        timeRemaining: {
+          type: Number, // in seconds
+          default: null
+        },
+        draftAnswers: [
+          {
+            questionId: String,
+            selectedOption: Number
+          }
+        ]
       },
     ],
 

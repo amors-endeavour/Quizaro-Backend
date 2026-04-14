@@ -178,6 +178,9 @@ app.get("/user/tests/purchased", isAuth, getPurchasedTests);
 // Get test status (purchased / expired / completed)
 app.get("/user/test/status/:testId", isAuth, getTestStatus);
 
+// Sync test progress 🔥
+app.post("/user/test/sync/:testId", isAuth, syncProgress);
+
 
 // ===========================
 // QUESTION ROUTES

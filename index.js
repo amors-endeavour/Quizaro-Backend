@@ -35,9 +35,11 @@ const {
   getAllTests,
   getSingleTest,
   purchaseTest,
+  purchaseSeries,
   getAvailableTests,
   getPurchasedTests,
-  getTestStatus
+  getTestStatus,
+  syncProgress
 } = require("./controllers/testController.js");
 
 const {
@@ -169,7 +171,8 @@ app.post("/test/purchase/:testId", isAuth, purchaseTest);
 // 🔥 USER PANEL TEST ROUTES
 // ===========================
 
-// Get tests not yet purchased
+app.post("/test/purchase/:testId", isAuth, purchaseTest);
+app.post("/user/series/purchase/:seriesId", isAuth, purchaseSeries); // Enrollment for Series 🔥
 app.get("/user/tests/available", isAuth, getAvailableTests);
 
 // Get purchased tests

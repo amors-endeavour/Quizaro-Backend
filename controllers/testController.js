@@ -61,7 +61,6 @@ exports.getSingleTest = async (req, res, next) => {
 =========================================== */
 exports.purchaseTest = async (req, res, next) => {
   try {
-
     const user = await User.findById(req.user.id);
     const testId = req.params.testId;
 
@@ -88,6 +87,54 @@ exports.purchaseTest = async (req, res, next) => {
     res.json({
       message: "Test purchased successfully",
       expiresAt
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/* ===========================================
+   PURCHASE SERIES
+=========================================== */
+exports.purchaseSeries = async (req, res, next) => {
+  try {
+    const seriesId = req.params.seriesId;
+    const user = await User.findById(req.user.id);
+    
+    // Find all papers in this series
+    const papers = await TestSeries.find({ seriesId });
+    
+    if (papers.length === 0) {
+      return next(new AppError("No papers found in this series", 404));
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days for series
+
+    let addedCount = 0;
+    papers.forEach(paper => {
+      const alreadyPurchased = user.purchasedTests.find(
+        (t) => t.testId.toString() === paper._id.toString()
+      );
+
+      if (!alreadyPurchased) {
+        user.purchasedTests.push({
+          testId: paper._id,
+          purchasedAt: new Date(),
+          expiresAt,
+          isCompleted: false
+        });
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      await user.save();
+    }
+
+    res.json({
+      message: `Enrolled in ${addedCount} new papers in this series.`,
+      totalPapers: papers.length
     });
 
   } catch (error) {

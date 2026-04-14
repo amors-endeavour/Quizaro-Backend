@@ -117,6 +117,24 @@ exports.getAllTestsAdmin = async (req, res, next) => {
 
 
 /* ===========================================
+   GET RECENT ATTEMPTS
+=========================================== */
+exports.getRecentAttempts = async (req, res, next) => {
+  try {
+    const attempts = await Attempt.find()
+      .populate("userId", "name email")
+      .populate("testId", "title")
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json(attempts);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+/* ===========================================
    GET ALL ATTEMPTS
 =========================================== */
 exports.getAllAttempts = async (req, res, next) => {

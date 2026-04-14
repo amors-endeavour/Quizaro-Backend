@@ -72,6 +72,7 @@ const {
   getAllUsers,
   getAllTestsAdmin,
   getAllAttempts,
+  getRecentAttempts,
   deleteTest,
   deleteQuestion
 } = require("./controllers/adminController.js");

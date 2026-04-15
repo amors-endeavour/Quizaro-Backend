@@ -153,7 +153,20 @@ exports.getResult = async (req, res, next) => {
       return next(new AppError("Result not found", 404));
     }
 
-    res.json(attempt);
+    // Dynamic Rank Calculation 🔥
+    const betterScores = await Attempt.countDocuments({
+      testId: attempt.testId._id,
+      $or: [
+        { score: { $gt: attempt.score } },
+        { score: attempt.score, timeTaken: { $lt: attempt.timeTaken } }
+      ]
+    });
+    const rank = betterScores + 1;
+
+    res.json({
+      ...attempt._doc,
+      rank
+    });
 
   } catch (err) {
     next(err);

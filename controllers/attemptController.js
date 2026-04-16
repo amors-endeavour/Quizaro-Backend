@@ -130,6 +130,13 @@ exports.submitTest = async (req, res, next) => {
     // 🔥 Award gamification rewards asynchronously (non-blocking)
     awardPostSubmit(userId, score, questions.length, timeTaken, rank).catch(console.error);
 
+    // 🔥 Trigger Phase 6 Real-time Admin Telemetry Updates
+    if (req.io) {
+      req.io.emit("admin:attemptUpdate", { 
+        testId, userId, score, percentage, timeTaken 
+      });
+    }
+
     // 🔥 Send email notification asynchronously
     try {
       const testDoc = await TestSeries.findById(testId);

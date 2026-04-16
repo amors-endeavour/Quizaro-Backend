@@ -33,7 +33,8 @@ const { submitTestSchema } = require("./validations/attemptValidation.js");
 // ======================
 // CONTROLLERS
 // ======================
-const { register, login, getProfile, forgotPassword, resetPassword, logout, enableMfa, verifyMfa } = require("./controllers/userController.js");
+const { register, login, getProfile, forgotPassword, resetPassword, logout, enableMfa, verifyMfa, oauthCallback } = require("./controllers/userController.js");
+const passport = require("./config/passport");
 
 const {
   createTest,
@@ -111,7 +112,10 @@ const { exportResultToPDF } = require("./controllers/exportController.js");
 // ======================
 // APP INIT
 // ======================
+const http = require("http");
+const { Server } = require("socket.io");
 const app = express();
+const server = http.createServer(app);
 const port = process.env.PORT || 4000;
 
 // Required for EJS
@@ -147,9 +151,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    // Allow localhost, vercel.app subdomains, and configured origins
     const isAllowed = allowedOrigins.includes(origin)
       || origin.match(/https?:\/\/.*\.vercel\.app$/)
       || origin.match(/http:\/\/localhost/)
@@ -164,6 +166,27 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// Setup Global Socket.io
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Middleware to inject IO object into every request
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+io.on("connection", (socket) => {
+  console.log(`[Socket.io] Client Connected: ${socket.id}`);
+  socket.on("disconnect", () => {
+    console.log(`[Socket.io] Client Disconnected: ${socket.id}`);
+  });
+});
 
 // ======================
 // ROOT
@@ -183,6 +206,13 @@ app.post("/user/forgot-password", forgotPassword);
 app.post("/user/reset-password", resetPassword);
 app.post("/user/mfa/enable", isAuth, enableMfa);
 app.post("/user/mfa/verify", isAuth, verifyMfa);
+
+// ===========================
+// OAUTH ROUTES
+// ===========================
+app.use(passport.initialize());
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));
+app.get("/auth/google/callback", passport.authenticate("google", { session: false, failureRedirect: "/login" }), oauthCallback);
 
 // ===========================
 // LOGOUT
@@ -383,6 +413,6 @@ app.use(errorHandler);
 // ===========================
 // SERVER
 // ===========================
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

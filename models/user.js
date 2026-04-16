@@ -26,9 +26,15 @@ const userSchema = new mongoose.Schema(
     // Hashed password (hidden in queries)
     password: {
       type: String,
-      required: true,
+      required: function() { return this.oauthProvider === 'local'; },
       minlength: 6,
       select: false,
+    },
+
+    oauthProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local'
     },
 
     // Role of user (student or admin)

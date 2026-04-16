@@ -262,6 +262,24 @@ exports.resetPassword = async (req, res, next) => {
 
 
 // ======================
+// OAuth Callback Generation
+// ======================
+exports.oauthCallback = (req, res) => {
+  const user = req.user;
+  const token = generateToken(user._id, user.role);
+  const isProduction = process.env.NODE_ENV === "production";
+
+  res.cookie("authToken", token, {
+    httpOnly: true,
+    secure: isProduction,
+    maxAge: 30 * 24 * 60 * 60 * 1000, 
+    sameSite: isProduction ? "none" : "lax"
+  });
+
+  res.redirect(process.env.FRONTEND_URL || "http://localhost:3000/user-dashboard");
+};
+
+// ======================
 // Logout User
 // ======================
 exports.logout = async (req, res) => {

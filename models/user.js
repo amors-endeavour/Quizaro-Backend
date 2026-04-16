@@ -47,6 +47,16 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    
+    // Multi-factor Auth
+    mfaSecret: {
+      type: String,
+      default: null,
+    },
+    isMfaEnabled: {
+      type: Boolean,
+      default: false,
+    },
 
     // ======================
     // Purchased Tests (IMPORTANT FEATURE 🔥)

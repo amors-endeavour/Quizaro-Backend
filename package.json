@@ -21,14 +21,21 @@
     "dotenv": "^17.3.1",
     "ejs": "^5.0.1",
     "express": "^5.2.1",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.3.2",
+    "helmet": "^8.1.0",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.3",
+    "morgan": "^1.10.1",
     "multer": "^2.1.0",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.13",
-    "pdfkit": "^0.18.0"
+    "pdfkit": "^0.18.0",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
+    "xss-clean": "^0.1.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

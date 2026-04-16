@@ -4,6 +4,8 @@ const crypto = require("crypto");
 const AppError = require("../utils/AppError");
 const { transporter } = require("../config/nodemailer");
 const { sendWelcomeEmail } = require("../config/emailService");
+const speakeasy = require("speakeasy");
+const QRCode = require("qrcode");
 
 // Generate JWT token
 const generateToken = (id, role) => {
@@ -275,4 +277,52 @@ exports.logout = async (req, res) => {
     success: true,
     message: "Logged out successfully"
   });
+};
+
+// ======================
+// Enable MFA (Generate Secret + QR)
+// ======================
+exports.enableMfa = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return next(new AppError("User not found", 404));
+
+    const secret = speakeasy.generateSecret({ name: `QuizaroPlatform (${user.email})` });
+    user.mfaSecret = secret.base32;
+    await user.save();
+
+    QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
+      if (err) return next(new AppError("Failed to generate QR code", 500));
+      res.json({ secret: secret.base32, qrCode: data_url });
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ======================
+// Verify MFA
+// ======================
+exports.verifyMfa = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user || (!user.mfaSecret && req.body.isFirstTime !== true)) return next(new AppError("User MFA not configured", 400));
+
+    const verified = speakeasy.totp.verify({
+      secret: user.mfaSecret,
+      encoding: 'base32',
+      token
+    });
+
+    if (verified) {
+      user.isMfaEnabled = true;
+      await user.save();
+      res.json({ message: "MFA Authentication successful" });
+    } else {
+      return next(new AppError("Invalid MFA token", 401));
+    }
+  } catch (err) {
+    next(err);
+  }
 };

@@ -7,6 +7,11 @@ const AppError = require("./utils/AppError");
 
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
 
 // ======================
 // MIDDLEWARES
@@ -28,7 +33,7 @@ const { submitTestSchema } = require("./validations/attemptValidation.js");
 // ======================
 // CONTROLLERS
 // ======================
-const { register, login, getProfile, forgotPassword, resetPassword, logout } = require("./controllers/userController.js");
+const { register, login, getProfile, forgotPassword, resetPassword, logout, enableMfa, verifyMfa } = require("./controllers/userController.js");
 
 const {
   createTest,
@@ -123,6 +128,19 @@ initCronJobs();
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cookieParser());
 
+// Add Security Headers
+app.use(helmet());
+// Prevent NoSQL Injection
+app.use(mongoSanitize());
+// Strip XSS payloads
+app.use(xss());
+// HTTP request logging
+app.use(morgan("combined"));
+
+// Rate Limiters
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: "Too many login attempts." });
+const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, message: "Too many accounts created from this IP." });
+
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
   : ["http://localhost:3000", "https://quizaro-frontend.vercel.app"];
@@ -158,11 +176,13 @@ app.get("/", (req, res) => {
 // ===========================
 // USER ROUTES
 // ===========================
-app.post("/user/register", validate(registerSchema), register);
-app.post("/user/login", validate(loginSchema), login);
+app.post("/user/register", registerLimiter, validate(registerSchema), register);
+app.post("/user/login", loginLimiter, validate(loginSchema), login);
 app.get("/user/profile", isAuth, getProfile);
 app.post("/user/forgot-password", forgotPassword);
 app.post("/user/reset-password", resetPassword);
+app.post("/user/mfa/enable", isAuth, enableMfa);
+app.post("/user/mfa/verify", isAuth, verifyMfa);
 
 // ===========================
 // LOGOUT

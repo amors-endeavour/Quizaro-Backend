@@ -4,6 +4,7 @@ const Attempt = require("../models/attempt");
 const Question = require("../models/question");
 const AppError = require("../utils/AppError");
 const QuizSeries = require("../models/quizSeries");
+const AuditLog = require("../models/auditLog");
 
 /* ===========================================
    GET ALL USERS
@@ -204,6 +205,14 @@ exports.deleteTest = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
+    await AuditLog.create({
+      action: "DELETE_TEST",
+      adminId: req.user.id,
+      resourceType: "TestSeries",
+      resourceId: testId,
+      details: { title: test.title }
+    });
+
     res.json({
       message: "Test and all related data deleted successfully"
     });
@@ -276,6 +285,13 @@ exports.deleteQuestion = async (req, res, next) => {
     if (!question) {
       return next(new AppError("Question not found", 404));
     }
+
+    await AuditLog.create({
+      action: "DELETE_QUESTION",
+      adminId: req.user.id,
+      resourceType: "Question",
+      resourceId: req.params.questionId
+    });
 
     res.json({
       message: "Question deleted successfully"
@@ -404,6 +420,14 @@ exports.deleteSeries = async (req, res, next) => {
     // Dissociate papers
     await TestSeries.updateMany({ seriesId: req.params.seriesId }, { $unset: { seriesId: "", paperNumber: "" } });
     
+    await AuditLog.create({
+      action: "DELETE_SERIES",
+      adminId: req.user.id,
+      resourceType: "QuizSeries",
+      resourceId: req.params.seriesId,
+      details: { title: series.title }
+    });
+
     res.json({ message: "Series deleted. Papers dissociated." });
   } catch (err) {
     next(err);

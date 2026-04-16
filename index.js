@@ -101,6 +101,8 @@ const {
   getUserActivity
 } = require("./controllers/engagementController.js");
 
+const { exportResultToPDF } = require("./controllers/exportController.js");
+
 // ======================
 // APP INIT
 // ======================
@@ -111,9 +113,12 @@ const port = process.env.PORT || 4000;
 app.set("view engine", "ejs");
 app.set("views","./views");
 
+const initCronJobs = require("./utils/cronJobs");
+
 dotenv.config();
 
 connectDb();
+initCronJobs();
 
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cookieParser());
@@ -237,6 +242,9 @@ app.post("/test/submit/:testId", isAuth, validate(submitTestSchema), submitTest)
 
 // Get result
 app.get("/result/:attemptId", isAuth, getResult);
+
+// Export result to PDF 🔥
+app.get("/result/:attemptId/export", isAuth, exportResultToPDF);
 
 // Leaderboard
 app.get("/leaderboard/:testId", getLeaderboard);

@@ -2,6 +2,8 @@ const Attempt = require("../models/attempt");
 const Question = require("../models/question");
 const User = require("../models/user");
 const AppError = require("../utils/AppError");
+const { sendResultEmail } = require("../config/emailService");
+const TestSeries = require("../models/testSeries");
 const { awardPostSubmit } = require("./gamificationController");
 
 /* ===========================================
@@ -127,6 +129,16 @@ exports.submitTest = async (req, res, next) => {
 
     // 🔥 Award gamification rewards asynchronously (non-blocking)
     awardPostSubmit(userId, score, questions.length, timeTaken, rank).catch(console.error);
+
+    // 🔥 Send email notification asynchronously
+    try {
+      const testDoc = await TestSeries.findById(testId);
+      if (testDoc) {
+        sendResultEmail(user, testDoc.title, score, percentage, rank).catch(console.error);
+      }
+    } catch(err) {
+      console.error("Failed to fetch test title for email", err);
+    }
 
     res.status(201).json({
       message: "Test submitted successfully",

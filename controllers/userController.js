@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const AppError = require("../utils/AppError");
 const { transporter } = require("../config/nodemailer");
+const { sendWelcomeEmail } = require("../config/emailService");
 
 // Generate JWT token
 const generateToken = (id, role) => {
@@ -49,6 +50,9 @@ exports.register = async (req, res, next) => {
       sameSite: isProduction ? "none" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000
     });
+
+    // Send welcome email asynchronously
+    sendWelcomeEmail(user).catch(console.error);
 
     res.status(201).json({
       user,

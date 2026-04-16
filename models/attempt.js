@@ -1,12 +1,10 @@
 // =====================================================
 // USER TEST SUBMISSIONS MODEL
-// Stores answers submitted by a user, along with
-// score, correctness, and ranking-related data
+// Phase 1.4 — Added retake tracking and question order
 // =====================================================
 
 const mongoose = require("mongoose");
 
-// Define schema for attempt
 const attemptSchema = new mongoose.Schema({
 
   // Reference to the user who attempted the test
@@ -26,31 +24,37 @@ const attemptSchema = new mongoose.Schema({
   // Array of answers submitted by user
   answers: [
     {
-      // Reference to question
       questionId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: "Question" 
       },
-
-      selectedOption: Number, // index chosen by user
-      correctOption: Number,  // correct answer index
-      isCorrect: Boolean,     // whether answer is correct
-      explanation: String     // explanation for answer
+      questionText: String,
+      options: [{ text: String }],
+      selectedOption: Number,
+      correctOption: Number,
+      isCorrect: Boolean,
+      explanation: String
     }
   ],
 
-  // Total score obtained
+  // Scores
   score: Number,
-
-  // Percentage score
   percentage: Number,
-
-  // Time taken to complete test
   timeTaken: Number,
 
-}, { timestamps: true }); // Automatically adds createdAt & updatedAt
+  // Retake tracking 🔥
+  isRetake: {
+    type: Boolean,
+    default: false
+  },
+  retakeNumber: {
+    type: Number,
+    default: 1
+  },
 
-// =====================================================
-// EXPORT MODEL
-// =====================================================
+  // The shuffled question order used in this specific attempt 🔥
+  questionOrder: [mongoose.Schema.Types.ObjectId],
+
+}, { timestamps: true });
+
 module.exports = mongoose.model("Attempt", attemptSchema);

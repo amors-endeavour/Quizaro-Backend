@@ -1,12 +1,10 @@
 // =====================================================
 // QUESTIONS MODEL
-// Stores question text, options, correct answer index,
-// and explanation for each question
+// Phase 1.3 — Added hint, imageUrl, flag tracking, orderIndex
 // =====================================================
 
 const mongoose = require("mongoose");
 
-// Define schema for questions
 const questionSchema = new mongoose.Schema({
 
   // Reference to the test this question belongs to
@@ -16,20 +14,24 @@ const questionSchema = new mongoose.Schema({
     required: true 
   },
 
-  // Main question text
+  // Main question text (supports markdown/HTML)
   questionText: { 
     type: String, 
     required: true 
   },
 
-  // Array of options for the question
-  options: [
-    { 
-      text: String   // option text
-    }
-  ],
+  // Optional question image (Cloudinary URL) 🔥
+  imageUrl: {
+    type: String,
+    default: null
+  },
 
-  // Index of the correct option (0-based index)
+  // Array of options for the question
+  options: [{ 
+    text: String
+  }],
+
+  // Index of the correct option (0-based)
   correctOption: { 
     type: Number, 
     required: true 
@@ -38,28 +40,45 @@ const questionSchema = new mongoose.Schema({
   // Explanation shown after test submission
   explanation: String,
 
-  // Scoring points for correct answer
+  // Hint shown on-request during quiz 🔥
+  hint: {
+    type: String,
+    default: null
+  },
+
+  // Scoring
   marks: {
     type: Number,
     default: 1
   },
-
-  // Negative marking for wrong answer
   negativeMarks: {
     type: Number,
     default: 0.25
   },
 
-  // Difficulty level of the question
+  // Difficulty level
   difficulty: {
     type: String,
     enum: ["Easy", "Medium", "Hard"],
     default: "Medium"
+  },
+
+  // User flagging for admin review 🔥
+  isFlagged: {
+    type: Boolean,
+    default: false
+  },
+  flagCount: {
+    type: Number,
+    default: 0
+  },
+
+  // Display order within test (for non-shuffled mode)
+  orderIndex: {
+    type: Number,
+    default: 0
   }
 
-}, { timestamps: true }); // Adds createdAt & updatedAt automatically
+}, { timestamps: true });
 
-// =====================================================
-// EXPORT MODEL
-// =====================================================
-module.exports =  mongoose.model("Question", questionSchema);
+module.exports = mongoose.model("Question", questionSchema);

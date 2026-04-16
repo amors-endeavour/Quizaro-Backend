@@ -111,6 +111,88 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
+    // ======================
+    // GAMIFICATION 🔥
+    // ======================
+    points: {
+      type: Number,
+      default: 0,
+    },
+    level: {
+      type: Number,
+      default: 1,
+    },
+    streak: {
+      type: Number,
+      default: 0,
+    },
+    lastActiveAt: {
+      type: Date,
+      default: null,
+    },
+    badges: [
+      {
+        name: String,
+        description: String,
+        icon: String,
+        awardedAt: { type: Date, default: Date.now }
+      }
+    ],
+
+    // ======================
+    // PROFILE & SOCIAL 🔥
+    // ======================
+    avatar: {
+      type: String,
+      default: null,
+    },
+    bio: {
+      type: String,
+      default: null,
+    },
+    favorites: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "QuizSeries"
+    }],
+
+    // Referral System 🔥
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      default: null,
+    },
+    referredBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    // ======================
+    // OAUTH 🔥
+    // ======================
+    oauthProvider: {
+      type: String,
+      enum: ["local", "google", "facebook"],
+      default: "local",
+    },
+    oauthId: {
+      type: String,
+      default: null,
+    },
+
+    // ======================
+    // ACCOUNT CONTROLS 🔥
+    // ======================
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    banReason: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true } // adds createdAt & updatedAt
 );

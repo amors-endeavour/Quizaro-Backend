@@ -1,12 +1,10 @@
 // =====================================================
-// TEST SERIES MODEL
-// Stores metadata for each test/quiz
-// Each test can contain multiple questions
+// TEST SERIES (PAPER) MODEL
+// Phase 1.2 — Added isPublished, version, shuffleQuestions, questionPool
 // =====================================================
 
 const mongoose = require("mongoose");
 
-// Define schema for test series
 const testSeriesSchema = new mongoose.Schema({
 
   // Title of the test
@@ -15,58 +13,67 @@ const testSeriesSchema = new mongoose.Schema({
     required: true 
   },
 
-  // Short description about the test
   description: String,
-
-  // Duration of test in minutes
   duration: Number,
-
-  // Price of the test (0 means free test)
   price: Number,
-
-  // Total number of questions in the test
   totalQuestions: Number,
+  category: String,
 
   // Reference to the Series this paper belongs to
   seriesId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "QuizSeries",
-    required: false // Optional for standalone tests, but used for series
+    required: false
   },
 
-  // Unique identifier within the series (e.g., 1 for "Paper 1")
   paperNumber: Number,
 
-  // Difficulty level
   difficulty: {
     type: String,
     enum: ["Easy", "Medium", "Hard"],
     default: "Medium"
   },
 
-  // Metadata tags
   tags: [String],
 
-  // Reference to admin/user who created the test
   createdBy: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: "User" 
   },
 
-  // Institutional Controls 🔥
+  // === QUIZ BEHAVIOUR CONTROLS ===
+
+  // Shuffle answer options per attempt
   shuffleOptions: {
     type: Boolean,
     default: false
   },
+  // Shuffle question order per attempt 🔥
+  shuffleQuestions: {
+    type: Boolean,
+    default: false
+  },
+  // Per-question time limit in seconds (0 = no limit)
   questionTimer: {
-    type: Number, // in seconds, 0 means no per-question timer
+    type: Number,
     default: 0
   },
-  category: String
+  // Draw N random questions from pool (0 = use all)
+  questionPool: {
+    type: Number,
+    default: 0
+  },
 
-}, { timestamps: true }); // Adds createdAt & updatedAt automatically
+  // === PUBLISH & VERSION CONTROLS === 🔥
+  isPublished: {
+    type: Boolean,
+    default: false
+  },
+  version: {
+    type: Number,
+    default: 1
+  }
 
-// =====================================================
-// EXPORT MODEL
-// =====================================================
-module.exports =  mongoose.model("TestSeries", testSeriesSchema);
+}, { timestamps: true });
+
+module.exports = mongoose.model("TestSeries", testSeriesSchema);

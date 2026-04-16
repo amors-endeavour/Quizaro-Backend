@@ -2,6 +2,7 @@ const Attempt = require("../models/attempt");
 const Question = require("../models/question");
 const User = require("../models/user");
 const AppError = require("../utils/AppError");
+const { awardPostSubmit } = require("./gamificationController");
 
 /* ===========================================
    SUBMIT TEST
@@ -124,6 +125,9 @@ exports.submitTest = async (req, res, next) => {
 
     const rank = betterScores + 1;
 
+    // 🔥 Award gamification rewards asynchronously (non-blocking)
+    awardPostSubmit(userId, score, questions.length, timeTaken, rank).catch(console.error);
+
     res.status(201).json({
       message: "Test submitted successfully",
       attemptId: attempt._id,
@@ -154,17 +158,19 @@ exports.getResult = async (req, res, next) => {
     }
 
     // Dynamic Rank Calculation 🔥
+    const testId = attempt.testId?._id || attempt.testId;
+    
     const betterScores = await Attempt.countDocuments({
-      testId: attempt.testId._id,
+      testId,
       $or: [
         { score: { $gt: attempt.score } },
-        { score: attempt.score, timeTaken: { $lt: attempt.timeTaken } }
+        { score: attempt.score, timeTaken: { $lt: attempt.timeTaken || 999999 } }
       ]
     });
     const rank = betterScores + 1;
 
     res.json({
-      ...attempt._doc,
+      ...attempt.toObject(),
       rank
     });
 

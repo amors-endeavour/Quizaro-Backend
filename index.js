@@ -77,6 +77,30 @@ const {
   deleteQuestion
 } = require("./controllers/adminController.js");
 
+// === NEW PHASE 2 CONTROLLERS ===
+const {
+  getExtendedProfile,
+  updateProfile,
+  uploadAvatar,
+  toggleFavorite,
+  getFavorites,
+  getBadges,
+  generateReferralCode
+} = require("./controllers/gamificationController.js");
+
+const {
+  getHint,
+  flagQuestion,
+  getFlaggedQuestions,
+  unflagQuestion,
+  retakeTest,
+  getTestAttemptHistory,
+  cloneSeries,
+  toggleSeriesPublish,
+  toggleUserBan,
+  getUserActivity
+} = require("./controllers/engagementController.js");
+
 // ======================
 // APP INIT
 // ======================
@@ -277,6 +301,47 @@ app.post("/admin/upload", isAuth, isAdmin, multMid, async (req, res, next) => {
     next(err);
   }
 });
+
+/* ===========================
+   PHASE 2 — GAMIFICATION ROUTES 🔥
+=========================== */
+
+// Extended user profile
+app.get("/user/profile/extended", isAuth, getExtendedProfile);
+app.put("/user/profile", isAuth, updateProfile);
+app.post("/user/profile/avatar", isAuth, multMid, uploadAvatar);
+app.post("/user/referral", isAuth, generateReferralCode);
+
+// Badges & Points
+app.get("/user/badges", isAuth, getBadges);
+
+// Favorites
+app.post("/user/favorites/:seriesId", isAuth, toggleFavorite);
+app.get("/user/favorites", isAuth, getFavorites);
+
+/* ===========================
+   PHASE 2 — ENGAGEMENT ROUTES 🔥
+=========================== */
+
+// Hints
+app.get("/question/hint/:questionId", isAuth, getHint);
+
+// Question flagging
+app.post("/question/flag/:questionId", isAuth, flagQuestion);
+app.get("/admin/questions/flagged", isAuth, isAdmin, getFlaggedQuestions);
+app.put("/admin/question/:questionId/unflag", isAuth, isAdmin, unflagQuestion);
+
+// Retakes
+app.post("/test/retake/:testId", isAuth, retakeTest);
+app.get("/user/attempts/:testId/history", isAuth, getTestAttemptHistory);
+
+// Series clone & publish
+app.post("/admin/series/:id/clone", isAuth, isAdmin, cloneSeries);
+app.put("/admin/series/:id/publish", isAuth, isAdmin, toggleSeriesPublish);
+
+// Admin user management
+app.put("/admin/user/:userId/ban", isAuth, isAdmin, toggleUserBan);
+app.get("/admin/user/:userId/activity", isAuth, isAdmin, getUserActivity);
 
 // Handle unknown routes
 app.use((req, res, next) => {

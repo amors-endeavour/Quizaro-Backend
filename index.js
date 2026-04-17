@@ -129,32 +129,45 @@ dotenv.config();
 connectDb();
 initCronJobs();
 
+// ======================
+// MIDDLEWARES
+// ======================
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "X-Requested-With"]
+}));
+
+// Setup Global Socket.io
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Middleware to inject IO object into every request
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Configure Helmet for Cross-Origin
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false
+}));
+
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-// Add Security Headers
-app.use(helmet());
 // Prevent NoSQL Injection
 app.use(mongoSanitize());
 // Strip XSS payloads
 app.use(xss());
 // HTTP request logging
 app.use(morgan("combined"));
-
-// Rate Limiters
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: "Too many login attempts." });
-const registerLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, message: "Too many accounts created from this IP." });
-
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
-  : ["http://localhost:3000", "https://quizaro-frontend.vercel.app"];
-
-app.use(cors({
-  origin: true, // Allow all origins to resolve Network Error immediately
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Accept", "X-Requested-With"]
-}));
 
 // Setup Global Socket.io
 const io = new Server(server, {

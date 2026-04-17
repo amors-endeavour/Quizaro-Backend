@@ -167,10 +167,25 @@ app.use(cookieParser());
 
 // Prevent NoSQL Injection
 app.use(mongoSanitize());
-// Strip XSS payloads
-app.use(xss());
 // HTTP request logging
 app.use(morgan("combined"));
+
+// Simplified Node 22 compatible XSS Protection
+app.use((req, res, next) => {
+  const sanitize = (obj) => {
+    if (!obj || typeof obj !== 'object') return obj;
+    for (let key in obj) {
+      if (typeof obj[key] === 'string') {
+        obj[key] = obj[key].replace(/<script.*?>.*?<\/script>/gi, '').trim();
+      } else if (typeof obj[key] === 'object') {
+        sanitize(obj[key]);
+      }
+    }
+  };
+  sanitize(req.body);
+  sanitize(req.query);
+  next();
+});
 
 io.on("connection", (socket) => {
   console.log(`[Socket.io] Client Connected: ${socket.id}`);

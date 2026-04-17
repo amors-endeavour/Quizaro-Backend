@@ -83,6 +83,11 @@ exports.login = async (req, res, next) => {
       return next(new AppError("Invalid credentials", 401));
     }
 
+    // Check if user has a password (might be a social login user)
+    if (!user.password || user.oauthProvider !== 'local') {
+      return next(new AppError("This account uses social login. Please login with Google.", 401));
+    }
+
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {

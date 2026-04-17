@@ -169,20 +169,6 @@ app.use(xss());
 // HTTP request logging
 app.use(morgan("combined"));
 
-// Setup Global Socket.io
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-
-// Middleware to inject IO object into every request
-app.use((req, res, next) => {
-  req.io = io;
-  next();
-});
-
 io.on("connection", (socket) => {
   console.log(`[Socket.io] Client Connected: ${socket.id}`);
   socket.on("disconnect", () => {

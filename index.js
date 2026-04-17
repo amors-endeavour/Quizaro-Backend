@@ -170,20 +170,25 @@ app.use(mongoSanitize());
 // HTTP request logging
 app.use(morgan("combined"));
 
-// Simplified Node 22 compatible XSS Protection
+// Simplified Node 22 + Express 5 compatible XSS Protection
 app.use((req, res, next) => {
   const sanitize = (obj) => {
     if (!obj || typeof obj !== 'object') return obj;
     for (let key in obj) {
       if (typeof obj[key] === 'string') {
-        obj[key] = obj[key].replace(/<script.*?>.*?<\/script>/gi, '').trim();
+        // Only attempt to sanitize if the property is writable
+        const descriptor = Object.getOwnPropertyDescriptor(obj, key);
+        if (!descriptor || descriptor.writable || descriptor.set) {
+          obj[key] = obj[key].replace(/<script.*?>.*?<\/script>/gi, '').trim();
+        }
       } else if (typeof obj[key] === 'object') {
         sanitize(obj[key]);
       }
     }
   };
-  sanitize(req.body);
-  sanitize(req.query);
+  
+  // Only sanitize body in Express 5 to avoid "IncomingMessage" getter errors
+  if (req.body) sanitize(req.body);
   next();
 });
 

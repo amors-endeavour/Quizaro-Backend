@@ -150,24 +150,10 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ["http://localhost:3000", "https://quizaro-frontend.vercel.app"];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps)
-    if (!origin) return callback(null, true);
-    
-    const isAllowed = allowedOrigins.some(o => origin.startsWith(o))
-      || origin.endsWith(".vercel.app")
-      || origin.includes("localhost")
-      || origin.includes("127.0.0.1");
-      
-    if (isAllowed) {
-      callback(null, origin); // Reflect the origin back
-    } else {
-      callback(null, false); // Just deny without throwing a hard Error object
-    }
-  },
+  origin: true, // Allow all origins to resolve Network Error immediately
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Accept"]
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "X-Requested-With"]
 }));
 
 // Setup Global Socket.io

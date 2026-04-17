@@ -213,7 +213,7 @@ app.get("/", (req, res) => {
 });
 
 // One-time Admin Seeder
-const User = require("./models/User");
+const User = require("./models/user");
 const bcrypt = require("bcryptjs");
 app.get("/admin/seed", async (req, res) => {
   try {

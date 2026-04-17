@@ -212,29 +212,6 @@ app.get("/", (req, res) => {
   res.send("Study Test Series API Running");
 });
 
-// One-time Admin Seeder
-const User = require("./models/user");
-const bcrypt = require("bcryptjs");
-app.get("/admin/seed", async (req, res) => {
-  try {
-    // Delete old broken admin if exists
-    await User.findOneAndDelete({ email: "admin@gmail.com" });
-    
-    // Create fresh admin (model's pre-save hook will hash "admin123" correctly)
-    await User.create({
-      name: "System Admin",
-      email: "admin@gmail.com",
-      password: "admin123",
-      role: "admin",
-      isVerified: true,
-      oauthProvider: "local"
-    });
-    res.send("Admin account RE-CREATED successfully! User: admin@gmail.com | Pass: admin123");
-  } catch (err) {
-    res.status(500).send("Seeding failed: " + err.message);
-  }
-});
-
 // ===========================
 // USER ROUTES
 // ===========================

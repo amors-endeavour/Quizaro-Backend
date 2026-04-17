@@ -217,18 +217,19 @@ const User = require("./models/user");
 const bcrypt = require("bcryptjs");
 app.get("/admin/seed", async (req, res) => {
   try {
-    const adminExists = await User.findOne({ email: "admin@gmail.com" });
-    if (adminExists) return res.send("Admin account already exists!");
+    // Delete old broken admin if exists
+    await User.findOneAndDelete({ email: "admin@gmail.com" });
     
-    const hashedPassword = await bcrypt.hash("admin123", 10);
+    // Create fresh admin (model's pre-save hook will hash "admin123" correctly)
     await User.create({
       name: "System Admin",
       email: "admin@gmail.com",
-      password: hashedPassword,
+      password: "admin123",
       role: "admin",
-      isVerified: true
+      isVerified: true,
+      oauthProvider: "local"
     });
-    res.send("Admin account created successfully! User: admin@gmail.com | Pass: admin123");
+    res.send("Admin account RE-CREATED successfully! User: admin@gmail.com | Pass: admin123");
   } catch (err) {
     res.status(500).send("Seeding failed: " + err.message);
   }

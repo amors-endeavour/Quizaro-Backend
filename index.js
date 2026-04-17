@@ -165,32 +165,38 @@ app.use(helmet({
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(cookieParser());
 
-// Prevent NoSQL Injection
-app.use(mongoSanitize());
-// HTTP request logging
-app.use(morgan("combined"));
-
-// Simplified Node 22 + Express 5 compatible XSS Protection
+// Unified Modern Sanitizer (NoSQL + XSS) - Express 5 & Node 22 Compatible
 app.use((req, res, next) => {
-  const sanitize = (obj) => {
+  const deepSanitize = (obj) => {
     if (!obj || typeof obj !== 'object') return obj;
+    
+    // Check if the object itself is writable
+    if (Object.isFrozen(obj)) return obj;
+
     for (let key in obj) {
-      if (typeof obj[key] === 'string') {
-        // Only attempt to sanitize if the property is writable
-        const descriptor = Object.getOwnPropertyDescriptor(obj, key);
-        if (!descriptor || descriptor.writable || descriptor.set) {
-          obj[key] = obj[key].replace(/<script.*?>.*?<\/script>/gi, '').trim();
-        }
-      } else if (typeof obj[key] === 'object') {
-        sanitize(obj[key]);
+      // 1. NoSQL Injection Protection (Remove keys starting with $)
+      if (key.startsWith('$')) {
+        delete obj[key];
+        continue;
+      }
+
+      const value = obj[key];
+      if (typeof value === 'string') {
+        // 2. XSS Protection (Remove <script> tags)
+        obj[key] = value.replace(/<script.*?>.*?<\/script>/gi, '').trim();
+      } else if (typeof value === 'object') {
+        deepSanitize(value);
       }
     }
   };
-  
-  // Only sanitize body in Express 5 to avoid "IncomingMessage" getter errors
-  if (req.body) sanitize(req.body);
+
+  // Only sanitize the Body (Express 5 protects req.query/req.params)
+  if (req.body) deepSanitize(req.body);
   next();
 });
+
+// HTTP request logging
+app.use(morgan("combined"));
 
 io.on("connection", (socket) => {
   console.log(`[Socket.io] Client Connected: ${socket.id}`);

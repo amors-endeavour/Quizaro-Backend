@@ -281,7 +281,10 @@ exports.oauthCallback = (req, res) => {
     sameSite: isProduction ? "none" : "lax"
   });
 
-  res.redirect(process.env.FRONTEND_URL || "http://localhost:3000/user-dashboard");
+  const redirectBase = process.env.FRONTEND_URL || "http://localhost:3000";
+  const dashboardPath = user.role === "admin" ? "/admin-dashboard" : "/user-dashboard";
+  
+  res.redirect(`${redirectBase}${dashboardPath}`);
 };
 
 // ======================

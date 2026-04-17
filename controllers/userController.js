@@ -284,7 +284,7 @@ exports.oauthCallback = (req, res) => {
   const redirectBase = process.env.FRONTEND_URL || "http://localhost:3000";
   const dashboardPath = user.role === "admin" ? "/admin-dashboard" : "/user-dashboard";
   
-  res.redirect(`${redirectBase}${dashboardPath}`);
+  res.redirect(`${redirectBase}${dashboardPath}?token=${token}`);
 };
 
 // ======================

@@ -151,20 +151,23 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps)
     if (!origin) return callback(null, true);
-    const isAllowed = allowedOrigins.includes(origin)
-      || origin.match(/https?:\/\/.*\.vercel\.app$/)
-      || origin.match(/http:\/\/localhost/)
-      || origin.match(/http:\/\/127\.0\.0\.1/);
+    
+    const isAllowed = allowedOrigins.some(o => origin.startsWith(o))
+      || origin.endsWith(".vercel.app")
+      || origin.includes("localhost")
+      || origin.includes("127.0.0.1");
+      
     if (isAllowed) {
-      callback(null, true);
+      callback(null, origin); // Reflect the origin back
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(null, false); // Just deny without throwing a hard Error object
     }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"]
 }));
 
 // Setup Global Socket.io

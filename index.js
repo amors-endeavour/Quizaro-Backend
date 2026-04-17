@@ -206,12 +206,33 @@ io.on("connection", (socket) => {
 });
 
 // ======================
-// ROOT
+// ROOT & SEEDING
 // ======================
 app.get("/", (req, res) => {
   res.send("Study Test Series API Running");
 });
 
+// One-time Admin Seeder
+const User = require("./models/User");
+const bcrypt = require("bcryptjs");
+app.get("/admin/seed", async (req, res) => {
+  try {
+    const adminExists = await User.findOne({ email: "admin@gmail.com" });
+    if (adminExists) return res.send("Admin account already exists!");
+    
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+    await User.create({
+      name: "System Admin",
+      email: "admin@gmail.com",
+      password: hashedPassword,
+      role: "admin",
+      isVerified: true
+    });
+    res.send("Admin account created successfully! User: admin@gmail.com | Pass: admin123");
+  } catch (err) {
+    res.status(500).send("Seeding failed: " + err.message);
+  }
+});
 
 // ===========================
 // USER ROUTES

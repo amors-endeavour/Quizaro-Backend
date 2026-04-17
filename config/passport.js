@@ -9,6 +9,7 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID || "dummy-client-id.apps.googleusercontent.com",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "dummy-client-secret",
       callbackURL: "/auth/google/callback",
+      proxy: true,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {

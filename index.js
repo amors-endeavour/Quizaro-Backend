@@ -324,18 +324,18 @@ app.get("/leaderboard/:testId", getLeaderboard);
 app.get("/user/attempts", isAuth, getUserAttempts);
 
 
+const {
+  getResources,
+  addResource,
+  deleteResource
+} = require("./controllers/resourceController.js");
+
 // ===========================
 // 🔥 RESOURCE ROUTES
 // ===========================
 app.get("/user/resources", isAuth, getResources);
 app.post("/admin/resource/add", isAuth, isAdmin, addResource);
 app.delete("/admin/resource/:id", isAuth, isAdmin, deleteResource);
-
-const {
-  getResources,
-  addResource,
-  deleteResource
-} = require("./controllers/resourceController.js");
 
 /* ===========================
    ADMIN DASHBOARD ROUTES

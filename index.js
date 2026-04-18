@@ -323,6 +323,20 @@ app.get("/leaderboard/:testId", getLeaderboard);
 // Get user attempt history
 app.get("/user/attempts", isAuth, getUserAttempts);
 
+
+// ===========================
+// 🔥 RESOURCE ROUTES
+// ===========================
+app.get("/user/resources", isAuth, getResources);
+app.post("/admin/resource/add", isAuth, isAdmin, addResource);
+app.delete("/admin/resource/:id", isAuth, isAdmin, deleteResource);
+
+const {
+  getResources,
+  addResource,
+  deleteResource
+} = require("./controllers/resourceController.js");
+
 /* ===========================
    ADMIN DASHBOARD ROUTES
 =========================== */

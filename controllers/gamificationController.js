@@ -105,10 +105,11 @@ exports.getExtendedProfile = async (req, res, next) => {
 =========================================== */
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, bio } = req.body;
+    const { name, bio, phone } = req.body;
     const updateFields = {};
     if (name) updateFields.name = name.trim();
     if (bio !== undefined) updateFields.bio = bio;
+    if (phone !== undefined) updateFields.phone = phone.trim();
 
     const user = await User.findByIdAndUpdate(
       req.user.id, 

@@ -23,6 +23,12 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Student Contact (Phone)
+    phone: {
+      type: String,
+      default: null,
+    },
+
     // Hashed password (hidden in queries)
     password: {
       type: String,

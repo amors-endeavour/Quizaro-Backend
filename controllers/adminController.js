@@ -433,3 +433,62 @@ exports.deleteSeries = async (req, res, next) => {
     next(err);
   }
 };
+
+/* ===========================================
+   TOGGLE TEST PUBLISH (LIVE / DRAFT)
+=========================================== */
+exports.toggleTestPublish = async (req, res, next) => {
+  try {
+
+    const test = await TestSeries.findById(req.params.testId);
+
+    if (!test) {
+      return next(new AppError("Test not found", 404));
+    }
+
+    test.isPublished = !test.isPublished;
+    await test.save();
+
+    res.json({
+      message: `Test ${test.isPublished ? "published" : "moved to draft"}`,
+      isPublished: test.isPublished
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ===========================================
+   ADVANCED DASHBOARD METRICS 🔥
+=========================================== */
+exports.getRevenueStats = async (req, res, next) => {
+  try {
+
+    // 🔥 Students appeared (unique users who attempted)
+    const studentsAppeared = await Attempt.distinct("userId");
+
+    // 🔥 Revenue (from purchases)
+    const users = await User.find();
+
+    let revenue = 0;
+
+    users.forEach(user => {
+      user.purchasedTests.forEach(pt => {
+        revenue += 100; // 🔥 replace with test.price later
+      });
+    });
+
+    // 🔥 Profit (simple logic)
+    const profit = Math.round(revenue * 0.7);
+
+    res.json({
+      studentsAppeared: studentsAppeared.length,
+      revenue,
+      profit
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};

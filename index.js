@@ -81,7 +81,8 @@ const {
   getRecentAttempts,
   deleteTest,
   deleteQuestion,
-  toggleTestPublish
+  toggleTestPublish,
+  getRevenue
 } = require("./controllers/adminController.js");
 
 // === NEW PHASE 2 CONTROLLERS ===
@@ -362,6 +363,7 @@ app.get("/admin/stats", isAuth, isAdmin, getAdminStats);
 app.get("/admin/analytics/:testId", isAuth, isAdmin, getQuestionAnalytics);
 app.get("/admin/export/:testId", isAuth, isAdmin, exportPaperJSON);
 app.post("/admin/import", isAuth, isAdmin, importFullPaper);
+app.get("/admin/revenue", isAuth, isAdmin, getRevenue);
 
 /* ===========================
    ADMIN SERIES ROUTES

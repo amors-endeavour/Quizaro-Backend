@@ -454,3 +454,34 @@ exports.deleteSeries = async (req, res, next) => {
     next(err);
   }
 };
+/* ===========================================
+   ADMIN REVENUE INTELLIGENCE 🔥
+=========================================== */
+exports.getRevenue = async (req, res, next) => {
+  try {
+    const users = await User.find({ role: "student" }).populate("purchasedTests.testId");
+    
+    let totalRevenue = 0;
+    let studentsWithPurchases = new Set();
+
+    users.forEach(user => {
+      if (user.purchasedTests) {
+        user.purchasedTests.forEach(purchase => {
+          if (purchase.testId) {
+            totalRevenue += (purchase.testId.price || 0);
+            studentsWithPurchases.add(user._id.toString());
+          }
+        });
+      }
+    });
+
+    res.json({
+      studentsAppeared: studentsWithPurchases.size,
+      revenue: totalRevenue,
+      profit: Math.round(totalRevenue * 0.7) // Institutional standard: 70% margin
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};

@@ -339,7 +339,7 @@ exports.toggleTestPublish = async (req, res, next) => {
     await test.save();
 
     res.json({ 
-      message: `Test ${test.isPublished ? "published" : "unpublished"} successfully.`,
+      message: test.isPublished ? "Test published successfully" : "Test moved to draft",
       isPublished: test.isPublished
     });
   } catch (err) {

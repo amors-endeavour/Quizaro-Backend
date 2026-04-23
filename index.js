@@ -80,7 +80,8 @@ const {
   getAllAttempts,
   getRecentAttempts,
   deleteTest,
-  deleteQuestion
+  deleteQuestion,
+  toggleTestPublish
 } = require("./controllers/adminController.js");
 
 // === NEW PHASE 2 CONTROLLERS ===
@@ -355,6 +356,7 @@ app.delete("/admin/question/:questionId", isAuth, isAdmin, deleteQuestion);
 app.put("/admin/question/:questionId", isAuth, isAdmin, updateQuestion);
 
 app.put("/admin/test/:testId", isAuth, isAdmin, updateTest);
+app.put("/admin/test/publish/:testId", isAuth, isAdmin, toggleTestPublish);
 
 app.get("/admin/stats", isAuth, isAdmin, getAdminStats);
 app.get("/admin/analytics/:testId", isAuth, isAdmin, getQuestionAnalytics);

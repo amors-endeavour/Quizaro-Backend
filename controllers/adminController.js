@@ -328,6 +328,27 @@ exports.updateTest = async (req, res, next) => {
 
 
 /* ===========================================
+   TOGGLE TEST PUBLISH STATUS 🔥
+=========================================== */
+exports.toggleTestPublish = async (req, res, next) => {
+  try {
+    const test = await TestSeries.findById(req.params.testId);
+    if (!test) return next(new AppError("Assessment node not found", 404));
+
+    test.isPublished = !test.isPublished;
+    await test.save();
+
+    res.json({ 
+      message: `Test ${test.isPublished ? "published" : "unpublished"} successfully.`,
+      isPublished: test.isPublished
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+/* ===========================================
    DASHBOARD STATS
 =========================================== */
 exports.getAdminStats = async (req, res, next) => {

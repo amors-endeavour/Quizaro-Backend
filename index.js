@@ -109,6 +109,13 @@ const {
   getUserActivity
 } = require("./controllers/engagementController.js");
 
+const { 
+  createOrder, 
+  verifyPayment, 
+  getBankDetails, 
+  updateBankDetails 
+} = require("./controllers/paymentController.js");
+
 const { exportResultToPDF } = require("./controllers/exportController.js");
 
 // ======================
@@ -364,6 +371,14 @@ app.get("/admin/analytics/:testId", isAuth, isAdmin, getQuestionAnalytics);
 app.get("/admin/export/:testId", isAuth, isAdmin, exportPaperJSON);
 app.post("/admin/import", isAuth, isAdmin, importFullPaper);
 app.get("/admin/revenue", isAuth, isAdmin, getRevenue);
+
+// ===========================
+// 🔥 PAYMENT ROUTES (TASK 1)
+// ===========================
+app.post("/payment/order", isAuth, createOrder);
+app.post("/payment/verify", isAuth, verifyPayment);
+app.get("/admin/bank-details", isAuth, isAdmin, getBankDetails);
+app.put("/admin/bank-details", isAuth, isAdmin, updateBankDetails);
 
 /* ===========================
    ADMIN SERIES ROUTES

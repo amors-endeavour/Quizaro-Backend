@@ -459,24 +459,16 @@ exports.deleteSeries = async (req, res, next) => {
 =========================================== */
 exports.getRevenue = async (req, res, next) => {
   try {
-    const users = await User.find({ role: "student" }).populate("purchasedTests.testId");
+    const Transaction = require("../models/transaction");
     
-    let totalRevenue = 0;
-    let studentsWithPurchases = new Set();
-
-    users.forEach(user => {
-      if (user.purchasedTests) {
-        user.purchasedTests.forEach(purchase => {
-          if (purchase.testId) {
-            totalRevenue += (purchase.testId.price || 0);
-            studentsWithPurchases.add(user._id.toString());
-          }
-        });
-      }
-    });
+    // Aggregate completed transactions
+    const transactions = await Transaction.find({ status: "completed" });
+    
+    const totalRevenue = transactions.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    const uniqueStudents = new Set(transactions.map(t => t.userId.toString()));
 
     res.json({
-      studentsAppeared: studentsWithPurchases.size,
+      studentsAppeared: uniqueStudents.size,
       revenue: totalRevenue,
       profit: Math.round(totalRevenue * 0.7) // Institutional standard: 70% margin
     });

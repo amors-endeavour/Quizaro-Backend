@@ -29,8 +29,13 @@ exports.createTest = async (req, res, next) => {
 =========================================== */
 exports.getAllTests = async (req, res, next) => {
   try {
-    const tests = await TestSeries.find().sort({ createdAt: -1 });
+
+    // 🔥 ONLY SHOW LIVE TESTS TO USERS
+    const tests = await TestSeries.find({ isPublished: true })
+      .sort({ createdAt: -1 });
+
     res.json(tests);
+
   } catch (err) {
     next(err);
   }
@@ -78,11 +83,11 @@ exports.purchaseTest = async (req, res, next) => {
     }
 
     // NEW PAYMENT SECURITY 🔥
-    if (test.price > 0) {
+    // if (test.price > 0) {
        // In a real system, we'd check req.body.paymentId here.
        // For now, let's assume we need a bypass or a simulation.
-       return next(new AppError("Premium Paper: Transaction required to unlock.", 402));
-    }
+      //  return next(new AppError("Premium Paper: Transaction required to unlock.", 402));
+    // }
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 3);

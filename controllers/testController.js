@@ -27,6 +27,7 @@ exports.createTest = async (req, res, next) => {
 /* ===========================================
    GET ALL TESTS (Public/Student View)
 =========================================== */
+exports.getAllTests = async (req, res, next) => {
   try {
     // 🔥 ONLY SHOW LIVE TESTS TO USERS
     const tests = await TestSeries.find({ isPublished: true })

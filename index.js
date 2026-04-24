@@ -83,7 +83,6 @@ const {
   getRecentAttempts,
   deleteTest,
   deleteQuestion,
-  toggleTestPublish,
   getRevenue,
   grantRole,
   getAuditLogs
@@ -369,10 +368,7 @@ app.put("/admin/question/:questionId", isAuth, isAdmin, updateQuestion);
 
 app.put("/admin/test/:testId", isAuth, isAdmin, updateTest);
 app.put("/admin/test/publish/:testId", isAuth, isAdmin, toggleTestPublish);
-
 app.get("/admin/stats", isAuth, isAdmin, getAdminStats);
-app.put("/admin/test/publish/:testId", isAuth, isAdmin, toggleTestPublish);
-app.get("/admin/revenue", isAuth, isAdmin, getRevenueStats);
 app.get("/admin/analytics/:testId", isAuth, isAdmin, getQuestionAnalytics);
 app.get("/admin/export/:testId", isAuth, isAdmin, exportPaperJSON);
 app.post("/admin/import", isAuth, isAdmin, importFullPaper);

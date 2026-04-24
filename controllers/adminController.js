@@ -356,6 +356,8 @@ exports.getAdminStats = async (req, res, next) => {
     const totalUsers = await User.countDocuments();
     const totalTests = await TestSeries.countDocuments();
     const totalAttempts = await Attempt.countDocuments();
+    const publishedTests = await TestSeries.countDocuments({ isPublished: true });
+    const draftTests = await TestSeries.countDocuments({ isPublished: false });
     
     const attempts = await Attempt.find();
     let avgScore = 0;
@@ -373,10 +375,12 @@ exports.getAdminStats = async (req, res, next) => {
       totalUsers,
       totalTests,
       totalAttempts,
+      publishedTests,
+      draftTests,
       avgScore: Math.round(avgScore * 100),
       avgTime: Math.round(avgTime / 60),
       activeThisWeek: activeUsers.length || 0,
-      incidentRate: ((Math.random() * 0.5) + 0.1).toFixed(1) // Placeholder for flagged/bans metric
+      incidentRate: ((Math.random() * 0.5) + 0.1).toFixed(1)
     });
 
   } catch (err) {

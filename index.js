@@ -19,7 +19,7 @@ const rateLimit = require("express-rate-limit");
 const isAuth = require("./middlewares/isAuth.js");
 const isAdmin = require("./middlewares/isAdmin.js");
 const validate = require("./middlewares/validate.js");
-const { multMid } = require("./middlewares/multer.js");
+const { multMid, uploadAvatarMid } = require("./middlewares/multer.js");
 const { uploadToCloudinary } = require("./config/cloudinary.js");
 
 // ======================
@@ -420,7 +420,7 @@ app.post("/admin/upload", isAuth, isAdmin, multMid, async (req, res, next) => {
 // Extended user profile
 app.get("/user/profile/extended", isAuth, getExtendedProfile);
 app.put("/user/profile", isAuth, updateProfile);
-app.post("/user/profile/avatar", isAuth, multMid, uploadAvatar);
+app.post("/user/profile/avatar", isAuth, uploadAvatarMid, uploadAvatar);
 app.post("/user/referral", isAuth, generateReferralCode);
 
 // Badges & Points

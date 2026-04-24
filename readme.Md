@@ -167,3 +167,4 @@ The APIs can be tested using:
 ## 👩‍💻 Author
 
 Backend implementation developed for the **Quizaro Quiz Platform**.
+

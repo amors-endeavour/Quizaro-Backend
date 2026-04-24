@@ -76,7 +76,7 @@ exports.login = async (req, res, next) => {
 
     const { email, password } = req.body;
 
-    let user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email }).select("+password name email role avatar");
 
     if (!user) {
       console.log("Login failed: no user found with email", email);

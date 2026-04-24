@@ -242,6 +242,10 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Performance Indexes 🔥
+userSchema.index({ role: 1 });
+userSchema.index({ points: -1 });
+userSchema.index({ rankPoints: -1 });
 
 // ======================
 // EXPORT MODEL

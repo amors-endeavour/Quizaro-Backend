@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Question = require("../models/question");
 const User = require("../models/user");
 const AppError = require("../utils/AppError");
@@ -92,7 +93,7 @@ exports.getTestQuestions = async (req, res, next) => {
     }
 
     // ✅ Fetch questions (hide answers for security)
-    const questions = await Question.find({ testId })
+    const questions = await Question.find({ testId: new mongoose.Types.ObjectId(testId) })
       .select("-explanation"); // Keep correctOption if we need to map, or we can use another way
 
     const test = await require("../models/testSeries").findById(testId);

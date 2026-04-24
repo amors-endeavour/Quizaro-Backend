@@ -170,7 +170,8 @@ exports.getAvailableTests = async (req, res, next) => {
     );
 
     const tests = await TestSeries.find({
-      _id: { $nin: purchasedIds }
+      _id: { $nin: purchasedIds },
+      isPublished: true
     });
 
     res.json(tests);

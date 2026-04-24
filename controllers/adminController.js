@@ -477,6 +477,42 @@ exports.getRevenue = async (req, res, next) => {
       profit: Math.round(totalRevenue * 0.7) // Institutional standard: 70% margin
     });
 
+/* ===========================================
+   GRANT ROLE (Admin)
+=========================================== */
+exports.grantRole = async (req, res, next) => {
+  try {
+    const { userId, role } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return next(new AppError("User not found", 404));
+
+    user.role = role;
+    await user.save();
+
+    await AuditLog.create({
+      action: "GRANT_ROLE",
+      adminId: req.user.id,
+      resourceType: "User",
+      resourceId: userId,
+      details: { newRole: role }
+    });
+
+    res.json({ message: `Role updated to ${role} for ${user.name}` });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ===========================================
+   GET AUDIT LOGS
+=========================================== */
+exports.getAuditLogs = async (req, res, next) => {
+  try {
+    const logs = await AuditLog.find()
+      .populate("adminId", "name email")
+      .sort({ createdAt: -1 })
+      .limit(100);
+    res.json(logs);
   } catch (err) {
     next(err);
   }

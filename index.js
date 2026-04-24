@@ -82,7 +82,9 @@ const {
   deleteTest,
   deleteQuestion,
   toggleTestPublish,
-  getRevenue
+  getRevenue,
+  grantRole,
+  getAuditLogs
 } = require("./controllers/adminController.js");
 
 // === NEW PHASE 2 CONTROLLERS ===
@@ -371,6 +373,8 @@ app.get("/admin/analytics/:testId", isAuth, isAdmin, getQuestionAnalytics);
 app.get("/admin/export/:testId", isAuth, isAdmin, exportPaperJSON);
 app.post("/admin/import", isAuth, isAdmin, importFullPaper);
 app.get("/admin/revenue", isAuth, isAdmin, getRevenue);
+app.post("/admin/grant-role", isAuth, isAdmin, grantRole);
+app.get("/admin/audit-logs", isAuth, isAdmin, getAuditLogs);
 
 // ===========================
 // 🔥 PAYMENT ROUTES (TASK 1)

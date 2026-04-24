@@ -141,6 +141,8 @@ exports.getProfile = async (req, res, next) => {
       phone: user.phone,
       avatar: user.avatar,
       bio: user.bio,
+      referralCode: user.referralCode,
+      createdAt: user.createdAt,
       role: user.role,
       totalTestsAttempted: user.totalTestsAttempted,
       totalScore: user.totalScore,

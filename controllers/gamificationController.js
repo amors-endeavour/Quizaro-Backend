@@ -202,12 +202,22 @@ exports.getBadges = async (req, res, next) => {
 exports.generateReferralCode = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-    if (user.referralCode) return res.json({ referralCode: user.referralCode });
+    if (!user) return next(new AppError("User not found", 404));
+    
+    if (user.referralCode) {
+      return res.json({ referralCode: user.referralCode });
+    }
 
-    const code = `QZ-${user.name.replace(/\s+/g, "").toUpperCase().slice(0, 4)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    const namePart = (user.name || "USER").replace(/\s+/g, "").toUpperCase().slice(0, 4);
+    const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+    const code = `QZ-${namePart}-${randomPart}`;
+
     await User.findByIdAndUpdate(req.user.id, { $set: { referralCode: code } });
+    
+    console.log(`Generated referral code ${code} for user ${user.email}`);
     res.json({ referralCode: code });
   } catch (err) {
+    console.error("Referral generation error:", err);
     next(err);
   }
 };

@@ -27,11 +27,12 @@ exports.createTest = async (req, res, next) => {
 /* ===========================================
    GET ALL TESTS (Public/Student View)
 =========================================== */
-exports.getAllTests = async (req, res, next) => {
   try {
-    // Only return tests that have been formally published by an admin
-    const tests = await TestSeries.find({ isPublished: true }).sort({ createdAt: -1 });
+    // 🔥 ONLY SHOW LIVE TESTS TO USERS
+    const tests = await TestSeries.find({ isPublished: true })
+      .sort({ createdAt: -1 });
     res.json(tests);
+
   } catch (err) {
     next(err);
   }

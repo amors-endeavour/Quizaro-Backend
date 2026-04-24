@@ -476,6 +476,10 @@ exports.getRevenue = async (req, res, next) => {
       revenue: totalRevenue,
       profit: Math.round(totalRevenue * 0.7) // Institutional standard: 70% margin
     });
+  } catch (err) {
+    next(err);
+  }
+};
 
 /* ===========================================
    GRANT ROLE (Admin)

@@ -63,6 +63,12 @@ const questionSchema = new mongoose.Schema({
     default: "Medium"
   },
 
+  // Taxonomic Section 🔥
+  section: {
+    type: String,
+    default: "General"
+  },
+
   // User flagging for admin review 🔥
   isFlagged: {
     type: Boolean,

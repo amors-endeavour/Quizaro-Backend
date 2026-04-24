@@ -16,7 +16,8 @@ exports.addQuestion = async (req, res, next) => {
 
     const question = await Question.create({
       testId: req.params.testId,
-      ...req.body
+      ...req.body,
+      marks: req.body.marks || req.body.points || 1 // Map points to marks 🔥
     });
 
     res.status(201).json(question);
@@ -40,7 +41,10 @@ exports.updateQuestion = async (req, res, next) => {
 
     const question = await Question.findByIdAndUpdate(
       req.params.questionId,
-      req.body,
+      { 
+        ...req.body, 
+        marks: req.body.marks || req.body.points || 1 // Map points to marks 🔥
+      },
       { new: true }
     );
 

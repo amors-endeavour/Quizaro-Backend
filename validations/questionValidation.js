@@ -7,35 +7,16 @@ const Joi = require("joi");
 
 // Schema for adding a question
 const addQuestionSchema = Joi.object({
-
-  // Question text (required)
   questionText: Joi.string().required(),
-
-  // Array of options (minimum 2 required)
-  options: Joi.array()
-    .items(
-      Joi.object({
-        text: Joi.string().required()   // option text
-      })
-    )
-    .min(2)
-    .required(),
-
-  // Index of correct option (0-based index)
+  options: Joi.array().items(Joi.object({ text: Joi.string().required() })).min(2).required(),
   correctOption: Joi.number().min(0).required(),
-
-  // Optional explanation (shown after test submission)
-  explanation: Joi.string().optional(),
-
-  // Points/Marks for the question
-  marks: Joi.number().optional().default(1),
-
-  // Penalty/Negative marks for wrong answer
+  explanation: Joi.string().optional().allow(""),
+  points: Joi.number().optional(), // Support 'points' from frontend
+  marks: Joi.number().optional(),  // Support 'marks' from backend
   negativeMarks: Joi.number().optional().default(0.25),
-
-  // Difficulty level selection
-  difficulty: Joi.string().valid("Easy", "Medium", "Hard").optional().default("Medium")
-});
+  difficulty: Joi.string().valid("Easy", "Medium", "Hard").optional().default("Medium"),
+  section: Joi.string().optional().default("General") // Support 'section'
+}).unknown(true); // Allow extra fields to prevent failures
 
 // =====================================================
 // EXPORT SCHEMA

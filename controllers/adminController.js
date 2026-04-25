@@ -406,7 +406,7 @@ exports.createSeries = async (req, res, next) => {
 
 exports.getAllSeries = async (req, res, next) => {
   try {
-    const series = await QuizSeries.find().sort({ createdAt: -1 });
+    const series = await QuizSeries.find({ isPublished: true }).sort({ createdAt: -1 });
     res.json(series);
   } catch (err) {
     next(err);

@@ -1,5 +1,4 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const pdf = require("pdf-parse");
 const fs = require("fs");
 const TestSeries = require("../models/testSeries");
 const Question = require("../models/question");
@@ -23,7 +22,9 @@ exports.autoIngest = async (req, res, next) => {
 
     // 2. Extract Text from PDF
     const dataBuffer = fs.readFileSync(req.file.path);
-    const pdfData = await pdf(dataBuffer);
+    const { PDFParse } = require("pdf-parse");
+    const parser = new PDFParse({ data: dataBuffer });
+    const pdfData = await parser.getText();
     const extractedText = pdfData.text;
 
     if (!extractedText || extractedText.trim().length < 50) {

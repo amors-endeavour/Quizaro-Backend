@@ -19,7 +19,8 @@ const questionSchema = new mongoose.Schema({
   }],
   correctOption: { 
     type: Number, 
-    required: true 
+    required: false,
+    default: 0
   },
   explanation: String,
   hint: {

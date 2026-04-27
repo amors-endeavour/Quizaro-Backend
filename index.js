@@ -384,6 +384,8 @@ app.post("/payment/verify", isAuth, verifyPayment);
 app.get("/admin/bank-details", isAuth, isAdmin, getBankDetails);
 app.put("/admin/bank-details", isAuth, isAdmin, updateBankDetails);
 
+const { autoIngest } = require("./controllers/aiController.js");
+
 /* ===========================
    ADMIN SERIES ROUTES
 =========================== */
@@ -392,6 +394,9 @@ app.get("/admin/series", isAuth, isAdmin, getAllSeries);
 app.get("/admin/series/:seriesId", isAuth, isAdmin, getSeriesDetails);
 app.put("/admin/series/:seriesId", isAuth, isAdmin, updateSeries);
 app.delete("/admin/series/:seriesId", isAuth, isAdmin, deleteSeries);
+
+// Auto-Ingest Route 🔥
+app.post("/admin/auto-ingest", isAuth, isAdmin, multMid, autoIngest);
 
 // Public Series Route
 app.get("/series", getAllSeries);

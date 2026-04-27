@@ -406,7 +406,8 @@ exports.createSeries = async (req, res, next) => {
 
 exports.getAllSeries = async (req, res, next) => {
   try {
-    const series = await QuizSeries.find({ isPublished: true }).sort({ createdAt: -1 });
+    const filter = req.user && req.user.role === "admin" ? {} : { isPublished: true };
+    const series = await QuizSeries.find(filter).sort({ createdAt: -1 });
     res.json(series);
   } catch (err) {
     next(err);

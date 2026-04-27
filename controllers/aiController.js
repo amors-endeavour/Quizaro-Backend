@@ -24,22 +24,19 @@ exports.extractQuestions = async (req, res) => {
     // 3. Prompt Gemini
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const prompt = `
-      You are an expert academic examiner. Extract all Multiple Choice Questions (MCQs) from the following text and return them strictly in JSON format.
+      You are an expert academic examiner. Extract all Multiple Choice Questions (MCQs) from the following text.
+      For each question, provide exactly 4 options.
+      Do NOT provide the correct answer or any explanations.
+      Return the results strictly in JSON format.
       
       Format:
       [
         {
           "questionText": "Question string",
           "options": [{"text": "Option 1"}, {"text": "Option 2"}, {"text": "Option 3"}, {"text": "Option 4"}],
-          "correctOption": 0, // Index of correct option (0-3)
-          "explanation": "Brief explanation"
+          "correctOption": 0 // Just use 0 as a placeholder
         }
       ]
-
-      Rules:
-      1. If the correct answer is not explicitly stated, use your best knowledge to determine it.
-      2. Ensure the JSON is valid and can be parsed.
-      3. Do not include any text other than the JSON array.
 
       Text:
       ${rawText}

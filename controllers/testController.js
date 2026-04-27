@@ -51,26 +51,6 @@ exports.getSingleTest = async (req, res, next) => {
       return next(new AppError("Test not found", 404));
     }
 
-    // 🔥 DYNAMIC ASSET RESOLUTION
-    // If test has no fileUrl, check for linked resources
-    if (!test.fileUrl) {
-      const Resource = require("../models/resource");
-      const linkedResource = await Resource.findOne({ 
-        $or: [
-          { testId: test._id },
-          { _id: test.resourceId }
-        ]
-      });
-      
-      if (linkedResource) {
-        // We don't save it to the test permanently here to avoid side-effects during GET
-        // but we return it so the frontend can display it.
-        const testObj = test.toObject();
-        testObj.fileUrl = linkedResource.fileUrl;
-        return res.json(testObj);
-      }
-    }
-
     res.json(test);
 
   } catch (err) {

@@ -14,14 +14,11 @@ exports.getResources = async (req, res) => {
 // POST add resource (Admin Only)
 exports.addResource = async (req, res) => {
   try {
-    const { title, description, fileType, fileUrl, category, isFree, testId } = req.body;
+    const { title, description, fileType, fileUrl, category, isFree } = req.body;
     
     if (!title || !fileUrl) {
       return res.status(400).json({ message: "Title and File URL are required." });
     }
-
-    const mongoose = require("mongoose");
-    const isValidTestId = mongoose.Types.ObjectId.isValid(testId);
 
     const resource = new Resource({
       title,
@@ -30,8 +27,7 @@ exports.addResource = async (req, res) => {
       fileUrl,
       category,
       isFree,
-      uploadedBy: req.user._id,
-      testId: testId && isValidTestId ? testId : null
+      uploadedBy: req.user._id
     });
 
     await resource.save();
@@ -49,28 +45,6 @@ exports.deleteResource = async (req, res) => {
 
     await Resource.findByIdAndDelete(req.params.id);
     res.json({ message: "Resource deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// PUT update resource (Admin Only)
-exports.updateResource = async (req, res) => {
-  try {
-    const updateData = { ...req.body };
-    const mongoose = require("mongoose");
-    
-    if (updateData.testId && !mongoose.Types.ObjectId.isValid(updateData.testId)) {
-       delete updateData.testId;
-    }
-
-    const resource = await Resource.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    );
-    if (!resource) return res.status(404).json({ message: "Resource not found" });
-    res.json(resource);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

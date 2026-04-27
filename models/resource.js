@@ -28,6 +28,11 @@ const resourceSchema = new mongoose.Schema({
   uploadedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
+  },
+  testId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "TestSeries",
+    default: null
   }
 }, { timestamps: true });
 

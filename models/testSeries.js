@@ -49,6 +49,15 @@ const testSeriesSchema = new mongoose.Schema({
   version: {
     type: Number,
     default: 1
+  },
+  fileUrl: {
+    type: String,
+    default: null
+  },
+  resourceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Resource",
+    default: null
   }
 }, { timestamps: true });
 

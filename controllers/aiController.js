@@ -32,7 +32,7 @@ exports.autoIngest = async (req, res, next) => {
     }
 
     // 3. Generate MCQs using Gemini
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
     
     const prompt = `
       Extract multiple choice questions from the following text. 

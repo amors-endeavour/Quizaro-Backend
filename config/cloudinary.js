@@ -28,7 +28,8 @@ const uploadToCloudinary = async (file, folderName) => {
 
         // Upload file to Cloudinary
         const uploadToCloud = await cloudinary.uploader.upload(file, {
-            folder: folderName
+            folder: folderName,
+            resource_type: "auto"
         });
 
         // Get secure URL of uploaded file

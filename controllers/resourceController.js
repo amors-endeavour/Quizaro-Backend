@@ -20,6 +20,9 @@ exports.addResource = async (req, res) => {
       return res.status(400).json({ message: "Title and File URL are required." });
     }
 
+    const mongoose = require("mongoose");
+    const isValidTestId = mongoose.Types.ObjectId.isValid(testId);
+
     const resource = new Resource({
       title,
       description,
@@ -28,7 +31,7 @@ exports.addResource = async (req, res) => {
       category,
       isFree,
       uploadedBy: req.user._id,
-      testId: testId && testId !== "" ? testId : null
+      testId: testId && isValidTestId ? testId : null
     });
 
     await resource.save();
@@ -54,9 +57,16 @@ exports.deleteResource = async (req, res) => {
 // PUT update resource (Admin Only)
 exports.updateResource = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    const mongoose = require("mongoose");
+    
+    if (updateData.testId && !mongoose.Types.ObjectId.isValid(updateData.testId)) {
+       delete updateData.testId;
+    }
+
     const resource = await Resource.findByIdAndUpdate(
       req.params.id,
-      { ...req.body },
+      updateData,
       { new: true }
     );
     if (!resource) return res.status(404).json({ message: "Resource not found" });

@@ -49,12 +49,14 @@ exports.autoIngest = async (req, res, next) => {
     
     try {
       const text = response.text();
+      console.log("Gemini Raw Response:", text);
       // Remove markdown code blocks if present
       const cleanText = text.replace(/```json|```/g, "").trim();
       mcqs = JSON.parse(cleanText);
     } catch (err) {
       console.error("Gemini JSON Parse Error:", err);
-      return next(new AppError("Failed to parse generated MCQs. Please try again.", 500));
+      console.error("Failed Text Content:", response.text());
+      return next(new AppError("Neural pattern parsing failed. AI output format was unexpected. Please try a different PDF.", 500));
     }
 
     // 4. Create Test and Questions

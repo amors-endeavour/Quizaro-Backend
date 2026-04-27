@@ -37,6 +37,10 @@ const { register, login, getProfile, forgotPassword, resetPassword, logout, enab
 const passport = require("./config/passport");
 
 const {
+  extractQuestions
+} = require("./controllers/aiController.js");
+
+const {
   createTest,
   getAllTests,
   getSingleTest,
@@ -295,6 +299,7 @@ app.post("/user/test/sync/:testId", isAuth, syncProgress);
 
 // Grant access (Admin Only) 🔥
 app.post("/admin/grant-access", isAuth, isAdmin, grantAccess);
+app.post("/admin/ai/extract", isAuth, isAdmin, extractQuestions);
 
 
 // ===========================

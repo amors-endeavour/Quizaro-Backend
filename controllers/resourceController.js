@@ -50,3 +50,18 @@ exports.deleteResource = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// PUT update resource (Admin Only)
+exports.updateResource = async (req, res) => {
+  try {
+    const resource = await Resource.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body },
+      { new: true }
+    );
+    if (!resource) return res.status(404).json({ message: "Resource not found" });
+    res.json(resource);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

@@ -80,6 +80,10 @@ exports.purchaseTest = async (req, res, next) => {
        return next(new AppError("Test not found", 404));
     }
 
+    if (!test.isPublished) {
+       return next(new AppError("This test is not yet live", 403));
+    }
+
     // SIMULATED PAYMENT BYPASS 🔥
     // In production, we would verify a paymentId here.
     // if (test.price > 0 && !req.body.paymentId) {

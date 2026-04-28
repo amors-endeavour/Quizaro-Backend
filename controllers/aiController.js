@@ -22,9 +22,8 @@ exports.autoIngest = async (req, res, next) => {
 
     // 2. Extract Text from PDF
     const dataBuffer = fs.readFileSync(req.file.path);
-    const { PDFParse } = require("pdf-parse");
-    const parser = new PDFParse({ data: dataBuffer });
-    const pdfData = await parser.getText();
+    const pdf = require("pdf-parse");
+    const pdfData = await pdf(dataBuffer);
     const extractedText = pdfData.text;
 
     if (!extractedText || extractedText.trim().length < 50) {

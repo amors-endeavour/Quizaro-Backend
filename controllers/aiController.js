@@ -31,7 +31,7 @@ exports.autoIngest = async (req, res, next) => {
     }
 
     // 3. Generate MCQs using Gemini
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     const prompt = `
       Extract multiple choice questions from the following text. 
@@ -40,7 +40,9 @@ exports.autoIngest = async (req, res, next) => {
       Return the result as a JSON array of objects with this structure:
       [{ "questionText": "...", "options": [{ "text": "..." }, { "text": "..." }, { "text": "..." }, { "text": "..." }] }]
       
-      Text: ${extractedText.substring(0, 5000)} // Limit text to avoid token overflow
+      IMPORTANT: Return ONLY the JSON array. Do not include any explanation or markdown blocks.
+      
+      Text: ${extractedText.substring(0, 10000)}
     `;
 
     const result = await model.generateContent(prompt);
@@ -50,13 +52,15 @@ exports.autoIngest = async (req, res, next) => {
     try {
       const text = response.text();
       console.log("Gemini Raw Response:", text);
-      // Remove markdown code blocks if present
-      const cleanText = text.replace(/```json|```/g, "").trim();
+      
+      // Improved JSON extraction regex
+      const jsonMatch = text.match(/\[\s*\{.*\}\s*\]/s);
+      const cleanText = jsonMatch ? jsonMatch[0] : text.replace(/```json|```/g, "").trim();
+      
       mcqs = JSON.parse(cleanText);
     } catch (err) {
       console.error("Gemini JSON Parse Error:", err);
-      console.error("Failed Text Content:", response.text());
-      return next(new AppError("Neural pattern parsing failed. AI output format was unexpected. Please try a different PDF.", 500));
+      return next(new AppError("Neural pattern parsing failed. The AI generated an invalid data structure. Please try a cleaner PDF.", 500));
     }
 
     // 4. Create Test and Questions

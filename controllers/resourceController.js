@@ -3,8 +3,7 @@ const Resource = require("../models/resource");
 // GET all resources
 exports.getResources = async (req, res) => {
   try {
-    const query = req.user?.role === 'admin' ? {} : { isFree: true };
-    const resources = await Resource.find(query).sort({ createdAt: -1 });
+    const resources = await Resource.find({}).sort({ createdAt: -1 });
     res.json(resources);
   } catch (err) {
     res.status(500).json({ message: err.message });

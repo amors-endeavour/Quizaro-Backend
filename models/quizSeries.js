@@ -16,7 +16,7 @@ const quizSeriesSchema = new mongoose.Schema({
   // Visibility & Publish Controls 🔥
   isPublished: {
     type: Boolean,
-    default: false
+    default: true
   },
 
   // Cover image (Cloudinary URL)

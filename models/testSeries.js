@@ -44,7 +44,7 @@ const testSeriesSchema = new mongoose.Schema({
   },
   isPublished: {
     type: Boolean,
-    default: false
+    default: true
   },
   pdfUrl: {
     type: String,

@@ -183,7 +183,7 @@ exports.forgotPassword = async (req, res, next) => {
     await user.save();
 
     // Build reset link
-    const resetLink = `${process.env.FRONTEND_URL || "https://quizaro-frontend.vercel.app"}/reset-password?token=${resetToken}`;
+    const resetLink = `${process.env.FRONTEND_URL || "https://quizaro-frontend-gdu56tkjq-amorsendeavour-4056s-projects.vercel.app"}/reset-password?token=${resetToken}`;
 
     // Send email in production, return token in development
     if (process.env.NODE_ENV === "production" && process.env.SMTP_HOST) {

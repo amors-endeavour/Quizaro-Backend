@@ -13,7 +13,7 @@ exports.getResources = async (req, res) => {
 // POST add resource (Admin Only)
 exports.addResource = async (req, res) => {
   try {
-    const { title, description, fileType, fileUrl, category, isFree } = req.body;
+    const { title, description, fileType, fileUrl, category, isFree, price } = req.body;
     
     if (!title || !fileUrl) {
       return res.status(400).json({ message: "Title and File URL are required." });
@@ -26,7 +26,8 @@ exports.addResource = async (req, res) => {
       fileUrl,
       category,
       isFree,
-      uploadedBy: req.user._id
+      price: price || 0,
+      uploadedBy: req.user.id
     });
 
     await resource.save();

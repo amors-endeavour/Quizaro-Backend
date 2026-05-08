@@ -25,6 +25,10 @@ const resourceSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  price: {
+    type: Number,
+    default: 0
+  },
   uploadedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"

@@ -84,11 +84,10 @@ exports.purchaseTest = async (req, res, next) => {
        return next(new AppError("This test is not yet live", 403));
     }
 
-    // SIMULATED PAYMENT BYPASS 🔥
-    // In production, we would verify a paymentId here.
-    // if (test.price > 0 && !req.body.paymentId) {
-    //    return next(new AppError("Premium Paper: Transaction required to unlock.", 402));
-    // }
+    // ENFORCE PAYMENT FOR PREMIUM PAPERS 🔥
+    if (test.price > 0) {
+       return next(new AppError("Premium Paper: Transaction required to unlock. Please use the checkout flow.", 402));
+    }
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 3);
@@ -122,6 +121,13 @@ exports.purchaseSeries = async (req, res, next) => {
     // Find all papers in this series
     const papers = await TestSeries.find({ seriesId });
     
+    const QuizSeries = require("../models/quizSeries");
+    const series = await QuizSeries.findById(seriesId);
+
+    if (series && (series.price || 0) > 0) {
+       return next(new AppError("Premium Series: Transaction required to unlock. Please use the checkout flow.", 402));
+    }
+
     if (papers.length === 0) {
       return next(new AppError("No papers found in this series", 404));
     }

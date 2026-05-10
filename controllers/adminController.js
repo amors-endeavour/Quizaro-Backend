@@ -522,3 +522,36 @@ exports.getAuditLogs = async (req, res, next) => {
     next(err);
   }
 };
+
+/* ===========================================
+   DELETE USER (Permanent Purge 🔥)
+=========================================== */
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(new AppError("Registry Error: User record not found.", 404));
+    }
+
+    // ❌ Permanent Database Removal
+    await User.findByIdAndDelete(userId);
+
+    // ❌ Log Administrative Action
+    await AuditLog.create({
+      action: "DELETE_USER",
+      adminId: req.user.id,
+      resourceType: "User",
+      resourceId: userId,
+      details: { name: user.name, email: user.email }
+    });
+
+    res.json({
+      message: "Registry updated: User permanently removed."
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};

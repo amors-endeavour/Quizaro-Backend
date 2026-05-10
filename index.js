@@ -85,7 +85,8 @@ const {
   deleteQuestion,
   getRevenue,
   grantRole,
-  getAuditLogs
+  getAuditLogs,
+  deleteUser
 } = require("./controllers/adminController.js");
 
 // === NEW PHASE 2 CONTROLLERS ===
@@ -354,6 +355,7 @@ app.delete("/admin/resource/:id", isAuth, isAdmin, deleteResource);
 =========================== */
 
 app.get("/admin/users", isAuth, isAdmin, getAllUsers);
+app.delete("/admin/users/:userId", isAuth, isAdmin, deleteUser);
 
 app.get("/admin/tests", isAuth, isAdmin, getAllTestsAdmin);
 

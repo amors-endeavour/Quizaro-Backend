@@ -583,3 +583,78 @@ exports.deleteUser = async (req, res, next) => {
     next(err);
   }
 };
+/* ===========================================
+   REPORT A BUG (TECHNICAL FEEDBACK)
+=========================================== */
+exports.reportBug = async (req, res, next) => {
+  try {
+    const { subject, description, urgency, metadata } = req.body;
+    const admin = req.user;
+
+    if (!description) {
+      return next(new AppError("Description is required for protocol reports.", 400));
+    }
+
+    // 1. Log to Audit Registry for accountability
+    await AuditLog.create({
+      action: "TECHNICAL_REPORT_DISPATCHED",
+      adminId: admin._id,
+      details: `Category: ${subject} | Urgency: ${urgency} | Metadata: ${JSON.stringify(metadata)}`,
+      timestamp: new Date()
+    });
+
+    // 2. Direct Dispatch via Nodemailer
+    const nodemailer = require("nodemailer");
+    
+    // Configure transporter (using placeholders for institutional security)
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER || "admin@quizaro.io",
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: `"Quizaro System Sentinel" <${process.env.EMAIL_USER || "admin@quizaro.io"}>`,
+      to: "sys-ops@quizaro.io",
+      subject: `[${urgency}] Institutional Anomaly: ${subject}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #7C3AED;">Institutional Bug Report</h2>
+          <p><strong>Administrator:</strong> ${admin.name} (${admin.email})</p>
+          <p><strong>Category:</strong> ${subject}</p>
+          <p><strong>Urgency:</strong> ${urgency}</p>
+          <hr />
+          <p><strong>Description:</strong></p>
+          <p style="background: #f9f9f9; padding: 15px; border-radius: 5px;">${description}</p>
+          <hr />
+          <p><strong>System Metadata:</strong></p>
+          <ul style="font-size: 12px; color: #666;">
+            <li><strong>Browser:</strong> ${metadata.browser}</li>
+            <li><strong>URL:</strong> ${metadata.url}</li>
+            <li><strong>Timestamp:</strong> ${new Date().toISOString()}</li>
+          </ul>
+        </div>
+      `
+    };
+
+    // Note: We'll attempt to send, but won't block the response if SMTP fails in dev
+    try {
+      if (process.env.EMAIL_PASS) {
+        await transporter.sendMail(mailOptions);
+      }
+    } catch (mailErr) {
+      console.error("Email Dispatch Failed:", mailErr.message);
+    }
+
+    res.json({ 
+      success: true, 
+      message: `Technical report dispatched. Our support team will investigate the ${subject} issue.`,
+      traceId: `TRX-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};

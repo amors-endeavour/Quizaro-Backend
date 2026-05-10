@@ -186,11 +186,13 @@ exports.getResult = async (req, res, next) => {
         { score: attempt.score, timeTaken: { $lt: attempt.timeTaken || 999999 } }
       ]
     });
+    const attemptCount = await Attempt.countDocuments({ testId });
     const rank = betterScores + 1;
 
     res.json({
       ...attempt.toObject(),
-      rank
+      rank,
+      attemptCount
     });
 
   } catch (err) {

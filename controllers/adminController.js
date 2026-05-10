@@ -422,7 +422,35 @@ exports.getSeriesDetails = async (req, res, next) => {
     // Get papers in this series
     const papers = await TestSeries.find({ seriesId: req.params.seriesId }).sort({ paperNumber: 1 });
     
-    res.json({ series, papers });
+    // Enhance papers with metrics 🔥
+    const enhancedPapers = await Promise.all(papers.map(async (paper) => {
+      const attemptCount = await Attempt.countDocuments({ testId: paper._id });
+      
+      let userBestRank = null;
+      if (req.user && req.user.id) {
+        const bestAttempt = await Attempt.findOne({ testId: paper._id, userId: req.user.id })
+          .sort({ score: -1, timeTaken: 1 });
+        
+        if (bestAttempt) {
+          const betterScores = await Attempt.countDocuments({
+            testId: paper._id,
+            $or: [
+              { score: { $gt: bestAttempt.score } },
+              { score: bestAttempt.score, timeTaken: { $lt: bestAttempt.timeTaken || 999999 } }
+            ]
+          });
+          userBestRank = betterScores + 1;
+        }
+      }
+
+      return {
+        ...paper.toObject(),
+        attemptCount,
+        userBestRank
+      };
+    }));
+
+    res.json({ series, papers: enhancedPapers });
   } catch (err) {
     next(err);
   }

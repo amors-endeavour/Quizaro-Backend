@@ -32,7 +32,36 @@ exports.getAllTests = async (req, res, next) => {
     // 🔥 ONLY SHOW LIVE TESTS TO USERS
     const tests = await TestSeries.find({ isPublished: true })
       .sort({ createdAt: -1 });
-    res.json(tests);
+
+    const Attempt = require("../models/attempt");
+    const enhancedTests = await Promise.all(tests.map(async (test) => {
+      const attemptCount = await Attempt.countDocuments({ testId: test._id });
+      
+      let userBestRank = null;
+      if (req.user && req.user.id) {
+        const bestAttempt = await Attempt.findOne({ testId: test._id, userId: req.user.id })
+          .sort({ score: -1, timeTaken: 1 });
+        
+        if (bestAttempt) {
+          const betterScores = await Attempt.countDocuments({
+            testId: test._id,
+            $or: [
+              { score: { $gt: bestAttempt.score } },
+              { score: bestAttempt.score, timeTaken: { $lt: bestAttempt.timeTaken || 999999 } }
+            ]
+          });
+          userBestRank = betterScores + 1;
+        }
+      }
+
+      return {
+        ...test.toObject(),
+        attemptCount,
+        userBestRank
+      };
+    }));
+
+    res.json(enhancedTests);
 
   } catch (err) {
     next(err);

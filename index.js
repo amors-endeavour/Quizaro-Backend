@@ -406,13 +406,11 @@ app.post("/admin/auto-ingest", isAuth, isAdmin, multMid, autoIngest);
 app.get("/admin/emergency-bootstrap", async (req, res) => {
   try {
     const User = require("./models/user");
-    const bcrypt = require("bcryptjs");
     
     let admin = await User.findOne({ email: "admin@quizaro.com" });
-    const hashedPassword = await bcrypt.hash("admin123", 10);
     
     if (admin) {
-      admin.password = hashedPassword;
+      admin.password = "admin123"; // System hook will hash this once
       admin.role = "admin";
       await admin.save();
       return res.send("EXISTING ACCOUNT UPDATED: admin@quizaro.com | Pass: admin123");
@@ -421,7 +419,7 @@ app.get("/admin/emergency-bootstrap", async (req, res) => {
     await User.create({
       name: "Institutional Admin",
       email: "admin@quizaro.com",
-      password: hashedPassword,
+      password: "admin123", // System hook will hash this once
       role: "admin",
       isVerified: true
     });

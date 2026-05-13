@@ -33,7 +33,7 @@ const { submitTestSchema } = require("./validations/attemptValidation.js");
 // ======================
 // CONTROLLERS
 // ======================
-const { register, login, getProfile, forgotPassword, resetPassword, logout, enableMfa, verifyMfa, oauthCallback } = require("./controllers/userController.js");
+const { register, login, getProfile, forgotPassword, resetPassword, logout, enableMfa, verifyMfa, oauthCallback, updatePassword } = require("./controllers/userController.js");
 const passport = require("./config/passport");
 
 const {

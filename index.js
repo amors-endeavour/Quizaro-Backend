@@ -402,33 +402,6 @@ app.delete("/admin/series/:seriesId", isAuth, isAdmin, deleteSeries);
 // Auto-Ingest Route 🔥
 app.post("/admin/auto-ingest", isAuth, isAdmin, multMid, autoIngest);
 
-// 🚨 EMERGENCY BOOTSTRAP ROUTE (Temporary)
-app.get("/admin/emergency-bootstrap", async (req, res) => {
-  try {
-    const User = require("./models/user");
-    
-    let admin = await User.findOne({ email: "admin@quizaro.com" });
-    
-    if (admin) {
-      admin.password = "admin123"; // System hook will hash this once
-      admin.role = "admin";
-      await admin.save();
-      return res.send("EXISTING ACCOUNT UPDATED: admin@quizaro.com | Pass: admin123");
-    }
-
-    await User.create({
-      name: "Institutional Admin",
-      email: "admin@quizaro.com",
-      password: "admin123", // System hook will hash this once
-      role: "admin",
-      isVerified: true
-    });
-    
-    res.send("NEW ADMIN CREATED: admin@quizaro.com | Pass: admin123");
-  } catch (err) {
-    res.status(500).send("Bootstrap failed: " + err.message);
-  }
-});
 
 // Public Series Route
 app.get("/series", getAllSeries);

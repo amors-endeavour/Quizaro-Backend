@@ -357,3 +357,33 @@ exports.verifyMfa = async (req, res, next) => {
     next(err);
   }
 };
+
+// ======================
+// Update Password
+// ======================
+exports.updatePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id).select("+password");
+
+    if (!user) {
+      return next(new AppError("Session expired or user not found.", 404));
+    }
+
+    // Verify current password
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return next(new AppError("Authentication failed: Current password incorrect.", 401));
+    }
+
+    // Set new password (pre-save hook will handle hashing)
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({
+      message: "Security registry updated: Password changed successfully."
+    });
+  } catch (err) {
+    next(err);
+  }
+};

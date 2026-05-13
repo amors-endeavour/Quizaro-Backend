@@ -430,6 +430,7 @@ app.post("/admin/upload", isAuth, isAdmin, multMid, async (req, res, next) => {
 // Extended user profile
 app.get("/user/profile/extended", isAuth, getExtendedProfile);
 app.put("/user/profile", isAuth, updateProfile);
+app.put("/user/password/update", isAuth, updatePassword);
 app.post("/user/profile/avatar", isAuth, uploadAvatarMid, uploadAvatar);
 app.post("/user/referral", isAuth, generateReferralCode);
 

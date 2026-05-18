@@ -399,6 +399,12 @@ app.get("/admin/series/:seriesId", isAuth, isAdmin, getSeriesDetails);
 app.put("/admin/series/:seriesId", isAuth, isAdmin, updateSeries);
 app.delete("/admin/series/:seriesId", isAuth, isAdmin, deleteSeries);
 
+// Admin Quizzes Paid Routes
+app.post("/admin/quizzes/paid", isAuth, isAdmin, createSeries);
+app.get("/admin/quizzes/paid", isAuth, isAdmin, getAllSeries);
+app.put("/admin/quizzes/paid/:seriesId", isAuth, isAdmin, updateSeries);
+app.delete("/admin/quizzes/paid/:seriesId", isAuth, isAdmin, deleteSeries);
+
 // Auto-Ingest Route 🔥
 app.post("/admin/auto-ingest", isAuth, isAdmin, multMid, autoIngest);
 

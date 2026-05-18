@@ -8,6 +8,15 @@ const quizSeriesSchema = new mongoose.Schema({
     unique: true
   },
   description: String,
+  series_name: {
+    type: String,
+    sparse: true
+  },
+  series_description: String,
+  created_at: {
+    type: Date,
+    default: Date.now
+  },
   category: {
     type: String,
     default: "General"

@@ -394,8 +394,20 @@ exports.getAdminStats = async (req, res, next) => {
 
 exports.createSeries = async (req, res, next) => {
   try {
+    const { series_name, name, title, series_description, description } = req.body;
+    const finalName = series_name || name || title;
+    const finalDescription = series_description || description || "";
+
+    if (!finalName) {
+      return res.status(400).json({ message: "Series name is required" });
+    }
+
     const series = await QuizSeries.create({
-      ...req.body,
+      title: finalName,
+      description: finalDescription,
+      series_name: finalName,
+      series_description: finalDescription,
+      created_at: new Date(),
       createdBy: req.user.id
     });
     res.status(201).json(series);
@@ -408,7 +420,28 @@ exports.getAllSeries = async (req, res, next) => {
   try {
     const filter = req.user && req.user.role === "admin" ? {} : { isPublished: true };
     const series = await QuizSeries.find(filter).sort({ createdAt: -1 });
-    res.json(series);
+    
+    const mappedSeries = await Promise.all(series.map(async (s) => {
+      const paperCount = await TestSeries.countDocuments({ seriesId: s._id });
+      const createdDate = s.created_at ? new Date(s.created_at) : new Date(s.createdAt);
+      const formattedDate = createdDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      });
+
+      return {
+        ...s.toObject(),
+        id: s._id.toString(),
+        name: s.series_name || s.title,
+        description: s.series_description || s.description || "",
+        paperCount: paperCount,
+        created: formattedDate,
+        totalQuestions: 0
+      };
+    }));
+
+    res.json(mappedSeries);
   } catch (err) {
     next(err);
   }
@@ -458,7 +491,21 @@ exports.getSeriesDetails = async (req, res, next) => {
 
 exports.updateSeries = async (req, res, next) => {
   try {
-    const series = await QuizSeries.findByIdAndUpdate(req.params.seriesId, req.body, { new: true });
+    const { series_name, name, title, series_description, description } = req.body;
+    const finalName = series_name || name || title;
+    const finalDescription = series_description || description;
+
+    const updateData = {};
+    if (finalName !== undefined) {
+      updateData.title = finalName;
+      updateData.series_name = finalName;
+    }
+    if (finalDescription !== undefined) {
+      updateData.description = finalDescription;
+      updateData.series_description = finalDescription;
+    }
+
+    const series = await QuizSeries.findByIdAndUpdate(req.params.seriesId, updateData, { new: true });
     if (!series) return next(new AppError("Series not found", 404));
     res.json(series);
   } catch (err) {

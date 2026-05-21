@@ -921,14 +921,17 @@ exports.reportBug = async (req, res, next) => {
       }
     });
 
+    const supportEmail = process.env.OFFICIAL_SUPPORT_EMAIL || "contactquizaro@gmail.com";
+
     const mailOptions = {
       from: `"Quizaro System Sentinel" <${process.env.EMAIL_USER || "admin@quizaro.io"}>`,
-      to: "sys-ops@quizaro.io",
+      to: supportEmail,
       subject: `[${urgency}] Institutional Anomaly: ${subject}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #7C3AED;">Institutional Bug Report</h2>
-          <p><strong>Administrator:</strong> ${admin.name} (${admin.email})</p>
+          <p><strong>Administrator Session:</strong> ${admin.name} (${admin.email})</p>
+          <p><strong>Target Destination:</strong> ${supportEmail}</p>
           <p><strong>Category:</strong> ${subject}</p>
           <p><strong>Urgency:</strong> ${urgency}</p>
           <hr />
@@ -949,9 +952,12 @@ exports.reportBug = async (req, res, next) => {
     try {
       if (process.env.EMAIL_PASS) {
         await transporter.sendMail(mailOptions);
+        console.log(`[SUCCESS] Email successfully dispatched. Destination: ${supportEmail} | Admin Session: ${admin.name} (${admin.email})`);
+      } else {
+        console.warn(`[WARNING] Skip sending email (SMTP credentials missing). Target: ${supportEmail} | Admin Session: ${admin.name} (${admin.email})`);
       }
     } catch (mailErr) {
-      console.error("Email Dispatch Failed:", mailErr.message);
+      console.error(`[FAILURE] Email dispatch failed to ${supportEmail} from Admin Session ${admin.name} (${admin.email}). Error details: ${mailErr.message}`);
     }
 
     res.json({ 

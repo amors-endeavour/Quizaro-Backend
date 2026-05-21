@@ -534,6 +534,264 @@ exports.deleteSeries = async (req, res, next) => {
     next(err);
   }
 };
+
+/* ===========================================
+   QUIZ PAPERS & FLAT ASSESSMENT SYSTEM (TASK 2 FIX)
+=========================================== */
+
+exports.savePaper = async (req, res, next) => {
+  const mongoose = require("mongoose");
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { seriesId, paperId, details, questions, status, type } = req.body;
+
+    if (!details || !details.title) {
+      return next(new AppError("Paper title is required", 400));
+    }
+
+    const isPublished = status === 'Published';
+    const paperPrice = type === 'paid' ? 99 : 0; // standard price for paid paper, 0 for unpaid
+
+    let paper;
+    if (paperId) {
+      // Update existing paper
+      paper = await TestSeries.findById(paperId).session(session);
+      if (!paper) {
+        throw new AppError("Paper not found", 404);
+      }
+      paper.title = details.title;
+      paper.description = details.instructions || "";
+      paper.duration = details.duration || 0;
+      paper.category = details.subject || "";
+      paper.totalQuestions = questions.length;
+      paper.isPublished = isPublished;
+      paper.price = paperPrice;
+      if (seriesId) {
+        paper.seriesId = seriesId;
+      }
+      await paper.save({ session });
+    } else {
+      // Create new paper
+      const createData = {
+        title: details.title,
+        description: details.instructions || "",
+        duration: details.duration || 0,
+        category: details.subject || "",
+        totalQuestions: questions.length,
+        isPublished: isPublished,
+        price: paperPrice,
+        createdBy: req.user.id
+      };
+      if (seriesId) {
+        createData.seriesId = seriesId;
+      }
+      paper = await TestSeries.create([createData], { session });
+      paper = paper[0];
+    }
+
+    // Now delete old questions and insert new ones
+    await Question.deleteMany({ testId: paper._id }).session(session);
+
+    const optionLetters = ["A", "B", "C", "D"];
+    const questionDocs = questions.map((q, index) => {
+      const correctIdx = optionLetters.indexOf(q.correctAnswer);
+      return {
+        testId: paper._id,
+        questionText: q.text,
+        marks: q.marks || 1,
+        options: q.options.map(opt => ({ text: opt.text })),
+        correctOption: correctIdx !== -1 ? correctIdx : 0,
+        orderIndex: index
+      };
+    });
+
+    if (questionDocs.length > 0) {
+      await Question.insertMany(questionDocs, { session });
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      message: "Paper successfully saved",
+      paperId: paper._id
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    next(err);
+  }
+};
+
+exports.getPapersBySeriesId = async (req, res, next) => {
+  try {
+    const { seriesId } = req.query;
+    const filter = seriesId ? { seriesId } : {};
+    const papers = await TestSeries.find(filter).sort({ createdAt: -1 });
+
+    const mappedPapers = papers.map(paper => ({
+      id: paper._id.toString(),
+      title: paper.title,
+      totalQuestions: paper.totalQuestions || 0,
+      status: paper.isPublished ? 'Published' : 'Draft',
+      created: new Date(paper.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    }));
+
+    res.json(mappedPapers);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getPaperDetailsAndQuestions = async (req, res, next) => {
+  try {
+    const paper = await TestSeries.findById(req.params.paperId);
+    if (!paper) {
+      return next(new AppError("Paper not found", 404));
+    }
+
+    const questions = await Question.find({ testId: req.params.paperId }).sort({ orderIndex: 1 });
+
+    const optionLetters = ["A", "B", "C", "D"];
+    const mappedQuestions = questions.map((q) => {
+      return {
+        id: q._id.toString(),
+        text: q.questionText,
+        marks: q.marks || 1,
+        options: q.options.map((opt, idx) => ({
+          id: optionLetters[idx] || String.fromCharCode(65 + idx),
+          text: opt.text || ""
+        })),
+        correctAnswer: optionLetters[q.correctOption] || "A"
+      };
+    });
+
+    res.json({
+      details: {
+        title: paper.title,
+        subject: paper.category || "",
+        totalMarks: paper.totalQuestions ? paper.totalQuestions * 1 : 0,
+        duration: paper.duration || 0,
+        instructions: paper.description || ""
+      },
+      questions: mappedQuestions
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getAllUnpaidQuizzes = async (req, res, next) => {
+  try {
+    const quizzes = await TestSeries.find({ price: 0, seriesId: { $exists: false } }).sort({ createdAt: -1 });
+
+    const mappedQuizzes = quizzes.map(quiz => ({
+      id: quiz._id.toString(),
+      name: quiz.title,
+      subject: quiz.category || "",
+      questions: quiz.totalQuestions || 0,
+      duration: quiz.duration || 0,
+      status: quiz.isPublished ? 'Published' : 'Draft',
+      created: new Date(quiz.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      description: quiz.description || ""
+    }));
+
+    res.json(mappedQuizzes);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.createUnpaidQuiz = async (req, res, next) => {
+  try {
+    const { title, description, category, totalQuestions, duration, difficulty, shuffleQuestions } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ message: "Quiz title is required" });
+    }
+
+    const quiz = await TestSeries.create({
+      title,
+      description: description || "",
+      category: category || "",
+      totalQuestions: totalQuestions || 0,
+      duration: duration || 0,
+      difficulty: difficulty || "Medium",
+      shuffleQuestions: shuffleQuestions || false,
+      price: 0,
+      createdBy: req.user.id
+    });
+
+    res.status(201).json(quiz);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateUnpaidQuiz = async (req, res, next) => {
+  try {
+    const { title, description, category, totalQuestions, duration, difficulty, shuffleQuestions } = req.body;
+
+    const quiz = await TestSeries.findByIdAndUpdate(
+      req.params.id,
+      {
+        title,
+        description,
+        category,
+        totalQuestions,
+        duration,
+        difficulty,
+        shuffleQuestions
+      },
+      { new: true }
+    );
+
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
+
+    res.json(quiz);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getUnpaidQuizDetails = async (req, res, next) => {
+  try {
+    const quiz = await TestSeries.findById(req.params.id);
+    if (!quiz) {
+      return next(new AppError("Quiz not found", 404));
+    }
+
+    const questions = await Question.find({ testId: req.params.id }).sort({ orderIndex: 1 });
+
+    const optionLetters = ["A", "B", "C", "D"];
+    const mappedQuestions = questions.map((q) => {
+      return {
+        id: q._id.toString(),
+        text: q.questionText,
+        options: q.options.map((opt, idx) => ({
+          id: optionLetters[idx] || String.fromCharCode(65 + idx),
+          text: opt.text || ""
+        })),
+        correctAnswer: optionLetters[q.correctOption] || "A"
+      };
+    });
+
+    res.json({
+      id: quiz._id.toString(),
+      name: quiz.title,
+      subject: quiz.category || "",
+      duration: quiz.duration || 0,
+      questions: mappedQuestions
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 /* ===========================================
    ADMIN REVENUE INTELLIGENCE 🔥
 =========================================== */

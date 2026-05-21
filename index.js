@@ -87,7 +87,14 @@ const {
   grantRole,
   getAuditLogs,
   deleteUser,
-  reportBug
+  reportBug,
+  savePaper,
+  getPapersBySeriesId,
+  getPaperDetailsAndQuestions,
+  getAllUnpaidQuizzes,
+  createUnpaidQuiz,
+  updateUnpaidQuiz,
+  getUnpaidQuizDetails
 } = require("./controllers/adminController.js");
 
 // === NEW PHASE 2 CONTROLLERS ===
@@ -404,6 +411,18 @@ app.post("/admin/quizzes/paid", isAuth, isAdmin, createSeries);
 app.get("/admin/quizzes/paid", isAuth, isAdmin, getAllSeries);
 app.put("/admin/quizzes/paid/:seriesId", isAuth, isAdmin, updateSeries);
 app.delete("/admin/quizzes/paid/:seriesId", isAuth, isAdmin, deleteSeries);
+
+// Phase 2 / Paid/Unpaid Quiz Integrations
+app.post("/admin/quizzes/save-paper", isAuth, isAdmin, savePaper);
+app.get("/api/papers", isAuth, isAdmin, getPapersBySeriesId);
+app.get("/admin/quizzes/papers/:paperId", isAuth, isAdmin, getPaperDetailsAndQuestions);
+app.delete("/admin/quizzes/papers/:paperId", isAuth, isAdmin, deleteTest);
+
+app.get("/admin/quizzes/unpaid", isAuth, isAdmin, getAllUnpaidQuizzes);
+app.post("/admin/quizzes/unpaid", isAuth, isAdmin, createUnpaidQuiz);
+app.put("/admin/quizzes/unpaid/:id", isAuth, isAdmin, updateUnpaidQuiz);
+app.get("/admin/quizzes/unpaid/:id", isAuth, isAdmin, getUnpaidQuizDetails);
+app.delete("/admin/quizzes/unpaid/:id", isAuth, isAdmin, deleteTest);
 
 // Auto-Ingest Route 🔥
 app.post("/admin/auto-ingest", isAuth, isAdmin, multMid, autoIngest);

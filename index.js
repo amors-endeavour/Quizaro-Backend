@@ -19,7 +19,7 @@ const rateLimit = require("express-rate-limit");
 const isAuth = require("./middlewares/isAuth.js");
 const isAdmin = require("./middlewares/isAdmin.js");
 const validate = require("./middlewares/validate.js");
-const { multMid, uploadAvatarMid } = require("./middlewares/multer.js");
+const { multMid, uploadAvatarMid, uploadPDFMid } = require("./middlewares/multer.js");
 const { uploadToCloudinary } = require("./config/cloudinary.js");
 
 // ======================
@@ -348,6 +348,8 @@ app.get("/user/attempts", isAuth, getUserAttempts);
 const {
   getResources,
   addResource,
+  addPDFResource,
+  updatePDFResource,
   deleteResource
 } = require("./controllers/resourceController.js");
 
@@ -357,6 +359,12 @@ const {
 app.get("/user/resources", isAuth, getResources);
 app.post("/admin/resource/add", isAuth, isAdmin, addResource);
 app.delete("/admin/resource/:id", isAuth, isAdmin, deleteResource);
+
+// PDF/Document Admin Routes (Academic Repository)
+app.get("/admin/resources/pdf", isAuth, isAdmin, getResources);
+app.post("/admin/resources/pdf", isAuth, isAdmin, uploadPDFMid, addPDFResource);
+app.patch("/admin/resources/pdf/:id", isAuth, isAdmin, uploadPDFMid, updatePDFResource);
+app.delete("/admin/resources/pdf/:id", isAuth, isAdmin, deleteResource);
 
 /* ===========================
    ADMIN DASHBOARD ROUTES
@@ -425,7 +433,7 @@ app.get("/admin/quizzes/unpaid/:id", isAuth, isAdmin, getUnpaidQuizDetails);
 app.delete("/admin/quizzes/unpaid/:id", isAuth, isAdmin, deleteTest);
 
 // Auto-Ingest Route 🔥
-app.post("/admin/auto-ingest", isAuth, isAdmin, multMid, autoIngest);
+app.post("/admin/auto-ingest", isAuth, isAdmin, uploadPDFMid, autoIngest);
 
 
 // Public Series Route

@@ -14,4 +14,7 @@ const uploadProfileMidWare = upload.single("profilepic")
 // Upload single image for avatar
 const uploadAvatarMid = upload.single("avatar")
 
-module.exports = { multMid, uploadProfileMidWare, uploadAvatarMid };
+// Upload single PDF for academic resources
+const uploadPDFMid = upload.single("file")
+
+module.exports = { multMid, uploadProfileMidWare, uploadAvatarMid, uploadPDFMid };

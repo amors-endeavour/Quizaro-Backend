@@ -17,6 +17,14 @@ const resourceSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  fileSize: {
+    type: String,
+    default: "0"
+  },
+  tags: {
+    type: [String],
+    default: []
+  },
   category: {
     type: String,
     default: "General"

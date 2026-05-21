@@ -673,7 +673,8 @@ exports.getPaperDetailsAndQuestions = async (req, res, next) => {
         subject: paper.category || "",
         totalMarks: paper.totalQuestions ? paper.totalQuestions * 1 : 0,
         duration: paper.duration || 0,
-        instructions: paper.description || ""
+        instructions: paper.description || "",
+        isPublished: paper.isPublished
       },
       questions: mappedQuestions
     });

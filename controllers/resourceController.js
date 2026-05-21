@@ -80,6 +80,46 @@ exports.addPDFResource = async (req, res) => {
   }
 };
 
+// POST add manual resource
+exports.addResource = async (req, res) => {
+  try {
+    const { title, description, fileType, fileUrl, category, isFree, price } = req.body;
+    
+    if (!title || !fileUrl) {
+      return res.status(400).json({ message: "Title and File URL are required." });
+    }
+
+    const resource = new Resource({
+      title,
+      description: description || "",
+      fileType: fileType || "pdf",
+      fileUrl,
+      category: category || "General",
+      isFree: isFree !== undefined ? isFree : true,
+      price: price || 0,
+      uploadedBy: req.user ? req.user.id : null
+    });
+
+    await resource.save();
+
+    const mapped = {
+      id: resource._id,
+      title: resource.title,
+      description: resource.description,
+      tags: resource.tags || [],
+      fileUrl: resource.fileUrl,
+      fileSize: resource.fileSize || "0",
+      uploadedAt: resource.createdAt ? new Date(resource.createdAt).toLocaleDateString() : "",
+      category: resource.category
+    };
+
+    res.status(201).json(mapped);
+  } catch (err) {
+    console.error("addResource error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // PATCH edit PDF resource
 exports.updatePDFResource = async (req, res) => {
   try {
